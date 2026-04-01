@@ -1,0 +1,26 @@
+{% load static %}
+<div class="tab-section">
+	<h2 class="tab-title">Login do Afiliado</h2>
+	<div class="login-wrapper">
+		<div class="login-card-logo">
+			<span class="sr-only">Point Viagens</span>
+			<img src="{% static 'meu_app/css/images/logo-branco2.png' %}" alt="Point Viagens">
+		</div>
+		<div class="login-card">
+			<a class="login-back-link" href="/">Voltar</a>
+			<form method="post" action="#" class="login-form">
+				{% csrf_token %}
+				<div class="login-field">
+					<label class="login-label" for="username">Usu&aacute;rio<span class="required"></span></label>
+					<input class="login-input" type="text" id="username" name="username" placeholder="Insira seu usu&aacute;rio" required />
+				</div>
+				<div class="login-field">
+					<label class="login-label" for="password">Senha<span class="required"></span></label>
+					<input class="login-input" type="password" id="password" name="password" placeholder="Insira sua senha" required />
+				</div>
+				<button type="submit" class="login-button">ENTRAR</button>
+				<p class="login-meta">Quer se tornar um afiliado? <a href="/cadastro_afiliado">Clique Aqui.</a></p>
+			</form>
+		</div>
+	</div>
+</div>

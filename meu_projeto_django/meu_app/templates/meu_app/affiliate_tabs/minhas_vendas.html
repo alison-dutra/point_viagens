@@ -1,0 +1,409 @@
+{% load static %}
+<div class="tab-section minhas-vendas">
+<style>
+    .container-vendas {
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        width: 100%;
+    }
+
+    .container-vendas h1 {
+        color: #333;
+        margin-bottom: 30px;
+        text-align: center;
+        font-size: 28px;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn-filter {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        background-color: #fff;
+        border-radius: 20px;
+        color: #555;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .btn-filter:hover, .btn-filter.active {
+        background-color: #0a2342;
+        color: white;
+        border-color: #0a2342;
+    }
+
+    .sale-card {
+        background: white;
+        border: 1px solid #e1e4e8;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+    }
+
+    .sale-card:not([data-status="pendente"]) .card-alter {
+        display: none;
+    }
+
+    .sale-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-color: #667eea;
+    }
+
+    .card-header {
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #fafbfc;
+    }
+
+    .sale-code { font-weight: 700; color: #333; font-size: 15px; }
+    .sale-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #666; }
+
+    .card-body {
+        padding: 15px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+    }
+
+    .info-item { display: flex; flex-direction: column; }
+    .label { font-size: 10px; text-transform: uppercase; color: #888; margin-bottom: 4px; font-weight: 600; }
+    .value { font-size: 13px; color: #444; font-weight: 500; }
+
+    .card-footer {
+        padding: 15px;
+        background-color: #fff;
+        border-top: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .sale-desc { font-size: 15px; color: #333; font-weight: 500; }
+    .sale-price { font-size: 18px; font-weight: 800; }
+
+    .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .badge-approved { background-color: #dafbe1; color: #1a7f37; }
+    .badge-pending  { background-color: #fff8c5; color: #9a6700; }
+    .badge-rejected { background-color: #ffebe9; color: #cf222e; }
+
+    .card-commission {
+        padding: 8px 15px;
+        background-color: #f0faf4;
+        border-top: 1px solid #e1f0e8;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .commission-label { font-size: 13px; color: #555; font-weight: 500; }
+    .commission-value { font-size: 14px; font-weight: 700; color: #1a7f37; }
+
+    .card-alter {
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-top: 2px solid #e1e4e8;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .alter-label { font-size: 14px; font-weight: 600; color: #333; }
+
+    .btn-edit {
+        padding: 8px 16px;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-edit:hover {
+        background-color: #565e64;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(108,117,125,0.3);
+    }
+
+    .edit-modal-overlay {
+        display: none; position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 2000; justify-content: center; align-items: center;
+    }
+
+    .edit-modal-overlay.show { display: flex; }
+
+    .edit-modal-content {
+        background: white; padding: 30px; border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        max-width: 500px; width: 95%;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-50px); opacity: 0; }
+        to   { transform: translateY(0);     opacity: 1; }
+    }
+
+    .edit-modal-title {
+        font-size: 18px; font-weight: 700; color: #333;
+        margin-bottom: 20px; padding-bottom: 12px;
+        border-bottom: 2px solid #e1e4e8;
+    }
+
+    .edit-field { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+
+    .edit-field label {
+        font-size: 12px; font-weight: 600; color: #888;
+        text-transform: uppercase; min-width: 110px; width: 110px;
+    }
+
+    .edit-field input {
+        flex: 1; padding: 7px 10px; border: 1px solid #ddd;
+        border-radius: 6px; font-size: 13px; color: #333;
+        transition: border-color 0.2s;
+    }
+
+    .edit-field input:focus { outline: none; border-color: #0a2342; }
+
+    .edit-modal-buttons {
+        display: flex; gap: 10px; justify-content: flex-end;
+        margin-top: 20px; padding-top: 15px; border-top: 1px solid #e1e4e8;
+    }
+
+    .btn-edit-save {
+        padding: 10px 24px; background-color: #0a2342; color: white;
+        border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-edit-save:hover { background-color: #081a30; transform: translateY(-1px); }
+
+    .btn-edit-cancel {
+        padding: 10px 24px; background-color: #e1e4e8; color: #333;
+        border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+
+    .btn-edit-cancel:hover { background-color: #d1d4d8; }
+
+    .success-message {
+        position: fixed; top: 80px; right: 20px;
+        background-color: #2ea44f; color: white;
+        padding: 12px 20px; border-radius: 6px; font-size: 14px; font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        opacity: 0; transform: translateY(-20px);
+        transition: all 0.3s ease; z-index: 1000;
+    }
+
+    .success-message.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 600px) {
+        .container-vendas { padding: 15px; }
+        .card-header, .card-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
+        .sale-meta { width: 100%; justify-content: space-between; }
+        .card-footer { align-items: stretch; }
+        .sale-price { text-align: right; }
+    }
+</style>
+
+<div class="edit-modal-overlay" id="editModal">
+    <div class="edit-modal-content">
+        <div class="edit-modal-title">✏️ Alterar Venda — <span id="editModalCode"></span></div>
+        <div class="edit-field"><label>ID Cliente</label><input type="text" id="edit-id-cliente"></div>
+        <div class="edit-field"><label>ID Afiliado</label><input type="text" id="edit-id-afiliado"></div>
+        <div class="edit-field">
+    <label>Produto</label>
+    <select id="edit-id-produto" style="flex:1; padding:7px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px; color:#333;">
+        {% for produto in produtos %}
+        <option value="{{ produto.id }}">{{ produto.nome_produto }}</option>
+        {% endfor %}
+    </select>
+</div>
+        <div class="edit-field"><label>Tipo de Venda</label><input type="text" id="edit-tipo-venda"></div>
+        <div class="edit-field"><label>Descrição</label><input type="text" id="edit-descricao"></div>
+        <div class="edit-field"><label>Valor (R$)</label><input type="text" id="edit-valor"></div>
+        <div class="edit-field"><label>Data</label><input type="text" id="edit-data"></div>
+        <div class="edit-modal-buttons">
+            <button class="btn-edit-cancel" onclick="closeEditModal()">Cancelar</button>
+            <button class="btn-edit-save" onclick="saveEdit()">💾 Salvar alterações</button>
+        </div>
+    </div>
+</div>
+
+<div class="success-message" id="editSuccessMessage">
+    <span>✏️</span> Venda alterada com sucesso!
+</div>
+
+<div class="container-vendas">
+    <h1>Minhas Vendas</h1>
+
+    <div class="filter-group">
+        <a href="#" class="btn-filter active" data-status="todas">Todas</a>
+        <a href="#" class="btn-filter" data-status="aprovado">Aprovadas</a>
+        <a href="#" class="btn-filter" data-status="pendente">Pendentes</a>
+        <a href="#" class="btn-filter" data-status="reprovado">Reprovadas</a>
+    </div>
+
+    {% for venda in vendas %}
+    <div class="sale-card" data-status="{{ venda.status_venda }}" data-id="{{ venda.id }}">
+        <div class="card-header">
+            <span class="sale-code">#{{ venda.codigo_venda }}</span>
+            <div class="sale-meta">
+                <span>{{ venda.data_venda|date:"d/m/Y" }}</span>
+                <span class="badge
+                    {% if venda.status_venda == 'aprovado' %}badge-approved
+                    {% elif venda.status_venda == 'pendente' %}badge-pending
+                    {% else %}badge-rejected{% endif %}">
+                    {{ venda.status_venda|upper }}
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="info-item"><span class="label">Cliente</span><span class="value">{{ venda.cliente.nome }}</span></div>
+            <div class="info-item"><span class="label">ID Afiliado</span><span class="value">{{ venda.afiliado.id }}</span></div>
+            <div class="info-item"><span class="label">Produto</span><span class="value">{{ venda.produto.nome_produto }}</span></div>
+            <div class="info-item"><span class="label">Tipo de Venda</span><span class="value">{{ venda.tipo_venda }}</span></div>
+        </div>
+        <div class="card-footer">
+            <div class="sale-desc">{{ venda.descricao_venda }}</div>
+            <div class="sale-price" style="color:
+                {% if venda.status_venda == 'aprovado' %}#2ea44f
+                {% elif venda.status_venda == 'pendente' %}#9a6700
+                {% else %}#cf222e{% endif %};">
+                R$ {{ venda.valor|floatformat:2 }}
+            </div>
+        </div>
+        <div class="card-commission">
+            <span class="commission-label">Comissão:</span>
+            <span class="commission-value"></span>
+        </div>
+        <div class="card-alter">
+            <span class="alter-label">Alterar:</span>
+            <button class="btn-edit" onclick="openEditModal(this)">✏️ Alterar venda</button>
+        </div>
+    </div>
+    {% empty %}
+    <p style="text-align:center; color:#888; margin-top: 40px;">Nenhuma venda encontrada.</p>
+    {% endfor %}
+
+</div>
+
+<script>
+    document.querySelectorAll('.sale-card').forEach(card => {
+        const priceEl = card.querySelector('.sale-price');
+        const commissionEl = card.querySelector('.commission-value');
+        const commissionRow = card.querySelector('.card-commission');
+        if (!priceEl || !commissionEl) return;
+        if (card.getAttribute('data-status') !== 'aprovado') { commissionRow.style.display = 'none'; return; }
+        const raw = priceEl.textContent.replace('R$','').trim().replace(/\./g,'').replace(',','.');
+        const commission = parseFloat(raw) * 0.015;
+        commissionEl.textContent = commission.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    });
+
+    document.querySelectorAll('.btn-filter').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            const filtro = this.getAttribute('data-status').toLowerCase();
+            document.querySelectorAll('.sale-card').forEach(card => {
+                card.style.display = (filtro === 'todas' || card.getAttribute('data-status') === filtro) ? 'block' : 'none';
+            });
+        });
+    });
+
+    let editCard = null;
+
+    function openEditModal(button) {
+        editCard = button.closest('.sale-card');
+        const values = editCard.querySelectorAll('.info-item .value');
+        document.getElementById('editModalCode').textContent = editCard.querySelector('.sale-code').textContent;
+        document.getElementById('edit-id-cliente').value  = values[0] ? values[0].textContent : '';
+        document.getElementById('edit-id-afiliado').value = values[1] ? values[1].textContent : '';
+        const nomeProduto = values[2] ? values[2].textContent.trim() : '';
+        const selectProduto = document.getElementById('edit-id-produto');
+        for (let opt of selectProduto.options) {
+            if (opt.text === nomeProduto) {
+            selectProduto.value = opt.value;
+            break;
+        }
+    }  
+        document.getElementById('edit-tipo-venda').value  = values[3] ? values[3].textContent : '';
+        document.getElementById('edit-descricao').value   = editCard.querySelector('.sale-desc').textContent;
+        const valorBruto = editCard.querySelector('.sale-price').textContent.replace('R$','').trim().replace(/\./g,'').replace(',','.');
+        document.getElementById('edit-valor').value = valorBruto;
+        document.getElementById('edit-data').value        = editCard.querySelector('.sale-meta span').textContent;
+        document.getElementById('editModal').classList.add('show');
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').classList.remove('show');
+        editCard = null;
+    }
+
+    function saveEdit() {
+    if (!editCard) return;
+    const vendaId = editCard.getAttribute('data-id');
+
+    const payload = {
+        produto_id: document.getElementById('edit-id-produto').value,
+        descricao_venda: document.getElementById('edit-descricao').value,
+        tipo_venda: document.getElementById('edit-tipo-venda').value,
+        valor: document.getElementById('edit-valor').value,
+    };
+
+    fetch(`/alterar_venda/${vendaId}/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Atualiza o card visualmente
+            const values = editCard.querySelectorAll('.info-item .value');
+            if (values[3]) values[3].textContent = payload.tipo_venda;
+            editCard.querySelector('.sale-desc').textContent = payload.descricao_venda;
+            editCard.querySelector('.sale-price').textContent = 'R$ ' + payload.valor;
+            closeEditModal();
+            const successMsg = document.getElementById('editSuccessMessage');
+            successMsg.classList.add('show');
+            setTimeout(() => successMsg.classList.remove('show'), 3000);
+        } else {
+            alert('Erro ao salvar: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao salvar alterações.');
+    });
+}
+</script>
+
+</div>

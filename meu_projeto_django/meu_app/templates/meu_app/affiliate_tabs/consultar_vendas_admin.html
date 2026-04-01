@@ -1,0 +1,704 @@
+{% load static %}
+<div class="tab-section consultar-vendas">
+<style>
+    .container-admin {
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        width: 100%;
+    }
+
+    .container-admin h1 {
+        color: #333;
+        margin-bottom: 30px;
+        text-align: center;
+        font-size: 28px;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn-filter-admin {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        background-color: #fff;
+        border-radius: 20px;
+        color: #555;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .btn-filter-admin:hover, .btn-filter-admin.active {
+        background-color: #0a2342;
+        color: white;
+        border-color: #0a2342;
+    }
+
+    .sale-card {
+        background: white;
+        border: 1px solid #e1e4e8;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+    }
+
+    .sale-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-color: #667eea;
+    }
+
+    .card-header {
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #fafbfc;
+    }
+
+    .sale-code { font-weight: 700; color: #333; font-size: 15px; }
+    .sale-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #666; }
+
+    .card-body {
+        padding: 15px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+    }
+
+    .info-item { display: flex; flex-direction: column; }
+    .label { font-size: 10px; text-transform: uppercase; color: #888; margin-bottom: 4px; font-weight: 600; }
+    .value { font-size: 13px; color: #444; font-weight: 500; }
+
+    .card-footer {
+        padding: 15px;
+        background-color: #fff;
+        border-top: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .sale-desc { font-size: 15px; color: #333; font-weight: 500; }
+    .sale-price { font-size: 18px; font-weight: 800; color: #000000; }
+
+    .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .badge-approved { background-color: #dafbe1; color: #1a7f37; }
+    .badge-pending  { background-color: #fff8c5; color: #9a6700; }
+    .badge-rejected { background-color: #ffebe9; color: #cf222e; }
+
+    .admin-approval {
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-top: 2px solid #e1e4e8;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .sale-card:not([data-status="pendente"]) .admin-approval {
+        display: none;
+    }
+
+    .approval-label { font-size: 14px; font-weight: 600; color: #333; }
+    .approval-controls { display: flex; gap: 10px; align-items: center; }
+
+    .btn-save {
+        padding: 8px 16px;
+        background-color: #2ea44f;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-save:hover {
+        background-color: #238a3e;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(46, 164, 79, 0.3);
+    }
+
+    .btn-reject {
+        padding: 8px 16px;
+        background-color: #cf222e;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-reject:hover {
+        background-color: #a8191f;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(207, 34, 46, 0.3);
+    }
+
+    .success-message {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background-color: #2ea44f;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+
+    .success-message.show { opacity: 1; transform: translateY(0); }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.show { display: flex; }
+
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-50px); opacity: 0; }
+        to   { transform: translateY(0);     opacity: 1; }
+    }
+
+    .modal-icon { font-size: 48px; margin-bottom: 15px; }
+    .modal-icon.approve { color: #2ea44f; }
+    .modal-icon.reject  { color: #cf222e; }
+    .modal-title   { font-size: 20px; font-weight: 700; color: #333; margin-bottom: 10px; }
+    .modal-message { font-size: 14px; color: #666; margin-bottom: 25px; line-height: 1.5; }
+    .modal-buttons { display: flex; gap: 10px; justify-content: center; }
+
+    .btn-modal { padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .btn-confirm { background-color: #0a2342; color: white; }
+    .btn-confirm:hover { background-color: #081a30; transform: translateY(-1px); }
+    .btn-cancel  { background-color: #e1e4e8; color: #333; }
+    .btn-cancel:hover { background-color: #d1d4d8; }
+
+    .obs-field {
+        margin-top: 5px;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .obs-field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 6px;
+    }
+
+    .obs-field textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #333;
+        resize: vertical;
+        min-height: 80px;
+        transition: border-color 0.2s;
+        font-family: inherit;
+    }
+
+    .obs-field textarea:focus {
+        outline: none;
+        border-color: #0a2342;
+    }
+
+    .obs-error {
+        color: #cf222e;
+        font-size: 12px;
+        margin-top: 4px;
+        display: none;
+    }
+
+    .card-obs {
+        padding: 10px 15px;
+        background-color: #fff8e1;
+        border-top: 1px solid #ffe082;
+        font-size: 13px;
+        color: #555;
+    }
+
+    .btn-edit {
+        padding: 8px 16px;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-edit:hover {
+        background-color: #565e64;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(108,117,125,0.3);
+    }
+
+    .edit-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .edit-modal-overlay.show { display: flex; }
+
+    .edit-modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        max-width: 500px;
+        width: 95%;
+        animation: slideDown 0.3s ease;
+    }
+
+    .edit-modal-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e1e4e8;
+    }
+
+    .edit-field { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+
+    .edit-field label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        min-width: 110px;
+        width: 110px;
+    }
+
+    .edit-field input {
+        flex: 1;
+        padding: 7px 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #333;
+        transition: border-color 0.2s;
+    }
+
+    .edit-field input:focus { outline: none; border-color: #0a2342; }
+
+    .edit-modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #e1e4e8;
+    }
+
+    .btn-edit-save {
+        padding: 10px 24px;
+        background-color: #0a2342;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-edit-save:hover { background-color: #081a30; transform: translateY(-1px); }
+
+    .btn-edit-cancel {
+        padding: 10px 24px;
+        background-color: #e1e4e8;
+        color: #333;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-edit-cancel:hover { background-color: #d1d4d8; }
+
+    .card-commission {
+        padding: 8px 15px;
+        background-color: #f0faf4;
+        border-top: 1px solid #e1f0e8;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .commission-label { font-size: 13px; color: #555; font-weight: 500; }
+    .commission-value { font-size: 14px; font-weight: 700; color: #1a7f37; }
+
+    @media (max-width: 600px) {
+        .container-admin { padding: 15px; }
+        .card-header, .card-footer, .admin-approval { flex-direction: column; align-items: flex-start; gap: 8px; }
+        .sale-meta { width: 100%; justify-content: space-between; }
+        .card-footer { align-items: stretch; }
+        .sale-price { text-align: right; }
+        .approval-controls { width: 100%; justify-content: space-between; }
+    }
+</style>
+
+<div class="success-message" id="adminSuccessMessage">
+    <span>✅</span> Status atualizado com sucesso!
+</div>
+
+<div class="modal-overlay" id="adminConfirmModal">
+    <div class="modal-content">
+        <div class="modal-icon" id="adminModalIcon">⚠️</div>
+        <div class="modal-title" id="adminModalTitle">Tem certeza?</div>
+        <div class="modal-message" id="adminModalMessage">Esta ação não poderá ser desfeita.</div>
+        <div class="obs-field">
+            <label id="adminObsLabel">Observação</label>
+            <textarea id="adminObsTexto" placeholder="Digite uma observação..."></textarea>
+            <div class="obs-error" id="adminObsError">A observação é obrigatória para reprovar uma venda.</div>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-cancel" onclick="adminCloseModal()">Cancelar</button>
+            <button class="btn-modal btn-confirm" onclick="adminConfirmAction()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<div class="edit-modal-overlay" id="adminEditModal">
+    <div class="edit-modal-content">
+        <div class="edit-modal-title">✏️ Alterar Venda — <span id="adminEditModalCode"></span></div>
+        <div class="edit-field"><label>ID Cliente</label><input type="text" id="admin-edit-id-cliente"></div>
+    <div class="edit-field"><label>ID Afiliado</label><input type="text" id="admin-edit-id-afiliado"></div>
+    <div class="edit-field">
+    <label>Produto</label>
+    <select id="admin-edit-id-produto" style="flex:1; padding:7px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px; color:#333;">
+        {% for produto in produtos %}
+        <option value="{{ produto.id }}">{{ produto.nome_produto }}</option>
+        {% endfor %}
+    </select>
+</div>
+    <div class="edit-field"><label>Tipo de Venda</label><input type="text" id="admin-edit-tipo-venda"></div>
+    <div class="edit-field"><label>Descrição</label><input type="text" id="admin-edit-descricao"></div>
+    <div class="edit-field"><label>Valor (R$)</label><input type="text" id="admin-edit-valor"></div>
+    <div class="edit-field"><label>Data</label><input type="text" id="admin-edit-data"></div>
+        <div class="edit-modal-buttons">
+            <button class="btn-edit-cancel" onclick="adminCloseEditModal()">Cancelar</button>
+            <button class="btn-edit-save" onclick="adminSaveEdit()">💾 Salvar alterações</button>
+        </div>
+    </div>
+</div>
+
+<div class="container-admin">
+    <h1>Consultar Vendas - Painel Admin</h1>
+
+    <div class="filter-group">
+        <a href="#" class="btn-filter-admin active" data-status="todas">Todas</a>
+        <a href="#" class="btn-filter-admin" data-status="aprovado">Aprovadas</a>
+        <a href="#" class="btn-filter-admin" data-status="pendente">Pendentes</a>
+        <a href="#" class="btn-filter-admin" data-status="reprovado">Reprovadas</a>
+    </div>
+
+    {% for venda in vendas %}
+    <div class="sale-card" data-status="{{ venda.status_venda }}" data-id="{{ venda.id }}">
+        <div class="card-header">
+            <span class="sale-code">#{{ venda.codigo_venda }}</span>
+            <div class="sale-meta">
+                <span>{{ venda.data_venda|date:"d/m/Y" }}</span>
+                <span class="badge
+                    {% if venda.status_venda == 'aprovado' %}badge-approved
+                    {% elif venda.status_venda == 'pendente' %}badge-pending
+                    {% else %}badge-rejected{% endif %}">
+                    {{ venda.status_venda|upper }}
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="info-item"><span class="label">Cliente</span><span class="value">{{ venda.cliente.nome }}</span></div>
+            <div class="info-item"><span class="label">CPF Afiliado</span><span class="value">{{ venda.afiliado.cpf }}</span></div>
+            <div class="info-item"><span class="label">Produto</span><span class="value">{{ venda.produto.nome_produto }}</span></div>
+            <div class="info-item"><span class="label">Tipo de Venda</span><span class="value">{{ venda.tipo_venda }}</span></div>
+        </div>
+        <div class="card-footer">
+            <div class="sale-desc">{{ venda.descricao_venda }}</div>
+            <div class="sale-price" style="color:
+                {% if venda.status_venda == 'aprovado' %}#2ea44f
+                {% elif venda.status_venda == 'pendente' %}#9a6700
+                {% else %}#cf222e{% endif %};">
+                R$ {{ venda.valor|floatformat:2 }}
+            </div>
+        </div>
+        <div class="card-commission">
+            <span class="commission-label">Comissão:</span>
+            <span class="commission-value"></span>
+        </div>
+        <div class="admin-approval">
+            <span class="approval-label">Aprovação Admin:</span>
+            <div class="approval-controls">
+                <button class="btn-edit" onclick="adminOpenEditModal(this)">✏️ Alterar venda</button>
+                <button class="btn-reject" onclick="adminOpenRejectModal(this)">❌ Reprovar venda</button>
+                <button class="btn-save" onclick="adminOpenApproveModal(this)">✅ Aprovar venda</button>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p style="text-align:center; color:#888; margin-top: 40px;">Nenhuma venda encontrada.</p>
+    {% endfor %}
+
+</div>
+
+<script>
+    const cv = document.querySelector('.consultar-vendas');
+
+    function adminUpdateCommission(card) {
+        const row = card.querySelector('.card-commission');
+        if (!row) return;
+        if (card.getAttribute('data-status') !== 'aprovado') { row.style.display = 'none'; return; }
+        row.style.display = 'flex';
+        const raw = card.querySelector('.sale-price').textContent.replace('R$','').trim().replace(/\./g,'').replace(',','.');
+        card.querySelector('.commission-value').textContent = (parseFloat(raw) * 0.015).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    cv.querySelectorAll('.sale-card').forEach(card => adminUpdateCommission(card));
+
+    cv.querySelectorAll('.btn-filter-admin').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            cv.querySelectorAll('.btn-filter-admin').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const filtro = this.getAttribute('data-status');
+            cv.querySelectorAll('.sale-card').forEach(card => {
+                card.style.display = (filtro === 'todas' || card.getAttribute('data-status') === filtro) ? 'block' : 'none';
+            });
+        });
+    });
+
+    let adminCurrentCard = null, adminCurrentAction = null;
+
+    function adminOpenApproveModal(button) {
+        adminCurrentCard = button.closest('.sale-card');
+        adminCurrentAction = 'approve';
+        document.getElementById('adminModalIcon').textContent = '✅';
+        document.getElementById('adminModalIcon').className = 'modal-icon approve';
+        document.getElementById('adminModalTitle').textContent = 'Tem certeza que deseja aprovar?';
+        document.getElementById('adminModalMessage').textContent = 'Esta venda será marcada como APROVADA.';
+        document.getElementById('adminObsLabel').textContent = 'Observação (opcional)';
+        document.getElementById('adminObsTexto').value = '';
+        document.getElementById('adminObsTexto').placeholder = 'Digite uma observação (opcional)...';
+        document.getElementById('adminObsError').style.display = 'none';
+        document.getElementById('adminConfirmModal').classList.add('show');
+    }
+
+    function adminOpenRejectModal(button) {
+        adminCurrentCard = button.closest('.sale-card');
+        adminCurrentAction = 'reject';
+        document.getElementById('adminModalIcon').textContent = '❌';
+        document.getElementById('adminModalIcon').className = 'modal-icon reject';
+        document.getElementById('adminModalTitle').textContent = 'Tem certeza que deseja reprovar?';
+        document.getElementById('adminModalMessage').textContent = 'Esta venda será marcada como REPROVADA.';
+        document.getElementById('adminObsLabel').textContent = 'Observação (obrigatória)';
+        document.getElementById('adminObsTexto').value = '';
+        document.getElementById('adminObsTexto').placeholder = 'Explique o motivo da reprovação...';
+        document.getElementById('adminObsError').style.display = 'none';
+        document.getElementById('adminConfirmModal').classList.add('show');
+    }
+
+    function adminCloseModal() {
+        document.getElementById('adminConfirmModal').classList.remove('show');
+        document.getElementById('adminObsTexto').value = '';
+        document.getElementById('adminObsError').style.display = 'none';
+        adminCurrentCard = null;
+        adminCurrentAction = null;
+    }
+
+    function adminConfirmAction() {
+        if (!adminCurrentCard || !adminCurrentAction) return;
+        const obs = document.getElementById('adminObsTexto').value.trim();
+        if (adminCurrentAction === 'reject' && obs === '') {
+            document.getElementById('adminObsError').style.display = 'block';
+            return;
+        }
+
+        const vendaId = adminCurrentCard.getAttribute('data-id');
+        const novoStatus = adminCurrentAction === 'approve' ? 'aprovado' : 'reprovado';
+
+        fetch(`/alterar_venda/${vendaId}/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status_venda: novoStatus, observacao: obs })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) { alert('Erro: ' + data.message); return; }
+
+            const badge = adminCurrentCard.querySelector('.badge');
+            const priceEl = adminCurrentCard.querySelector('.sale-price');
+
+            if (novoStatus === 'aprovado') {
+                badge.className = 'badge badge-approved'; badge.textContent = 'APROVADO';
+                adminCurrentCard.setAttribute('data-status', 'aprovado'); priceEl.style.color = '#2ea44f';
+            } else {
+                badge.className = 'badge badge-rejected'; badge.textContent = 'REPROVADO';
+                adminCurrentCard.setAttribute('data-status', 'reprovado'); priceEl.style.color = '#cf222e';
+            }
+
+            if (obs !== '') {
+                let obsDiv = adminCurrentCard.querySelector('.card-obs');
+                if (!obsDiv) { obsDiv = document.createElement('div'); obsDiv.className = 'card-obs'; adminCurrentCard.appendChild(obsDiv); }
+                obsDiv.innerHTML = '<strong>Observação:</strong> ' + obs;
+            }
+
+            adminCurrentCard.querySelector('.admin-approval').style.display = 'none';
+            adminUpdateCommission(adminCurrentCard);
+
+            const filtroAtivo = cv.querySelector('.btn-filter-admin.active');
+            if (filtroAtivo) {
+                const filtro = filtroAtivo.getAttribute('data-status');
+                if (filtro !== 'todas' && adminCurrentCard.getAttribute('data-status') !== filtro)
+                    adminCurrentCard.style.display = 'none';
+            }
+
+            const action = adminCurrentAction;
+            adminCloseModal();
+            const msg = document.getElementById('adminSuccessMessage');
+            msg.style.backgroundColor = action === 'approve' ? '#2ea44f' : '#cf222e';
+            msg.innerHTML = action === 'approve' ? '<span>✅</span> Aprovado com sucesso!' : '<span>❌</span> Venda reprovada!';
+            msg.classList.add('show');
+            setTimeout(() => window.location.reload(), 3000);
+        })
+        .catch(err => { console.error(err); alert('Erro ao atualizar status.'); });
+    }
+
+    document.getElementById('adminConfirmModal').addEventListener('click', e => {
+        if (e.target === document.getElementById('adminConfirmModal')) adminCloseModal();
+    });
+
+    let adminEditCard = null;
+
+    function adminOpenEditModal(button) {
+    adminEditCard = button.closest('.sale-card');
+    const values = adminEditCard.querySelectorAll('.info-item .value');
+    document.getElementById('adminEditModalCode').textContent = adminEditCard.querySelector('.sale-code').textContent;
+    document.getElementById('admin-edit-id-cliente').value  = values[0] ? values[0].textContent : '';
+    document.getElementById('admin-edit-id-afiliado').value = values[1] ? values[1].textContent : '';
+    const nomeProduto = values[2] ? values[2].textContent.trim() : '';
+    const selectProduto = document.getElementById('admin-edit-id-produto');
+    for (let opt of selectProduto.options) {
+        if (opt.text === nomeProduto) {
+            selectProduto.value = opt.value;
+            break;
+        }
+    }
+    document.getElementById('admin-edit-tipo-venda').value  = values[3] ? values[3].textContent : '';
+    document.getElementById('admin-edit-descricao').value   = adminEditCard.querySelector('.sale-desc').textContent;
+    const valorBruto = adminEditCard.querySelector('.sale-price').textContent.replace('R$','').trim().replace(/\./g,'').replace(',','.');
+    document.getElementById('admin-edit-valor').value = valorBruto;
+    document.getElementById('admin-edit-data').value        = adminEditCard.querySelector('.sale-meta span').textContent;
+    document.getElementById('adminEditModal').classList.add('show');
+}
+
+    function adminCloseEditModal() {
+        document.getElementById('adminEditModal').classList.remove('show');
+        adminEditCard = null;
+    }
+
+    function adminSaveEdit() {
+        if (!adminEditCard) return;
+        const vendaId = adminEditCard.getAttribute('data-id');
+
+        const payload = {
+            produto_id: document.getElementById('admin-edit-id-produto').value,
+            tipo_venda: document.getElementById('admin-edit-tipo-venda').value,
+            descricao_venda: document.getElementById('admin-edit-descricao').value,
+            valor: document.getElementById('admin-edit-valor').value,
+        };
+
+        fetch(`/alterar_venda/${vendaId}/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) { alert('Erro: ' + data.message); return; }
+
+            const values = adminEditCard.querySelectorAll('.info-item .value');
+            if (values[3]) values[3].textContent = payload.tipo_venda;
+            adminEditCard.querySelector('.sale-desc').textContent = payload.descricao_venda;
+            adminEditCard.querySelector('.sale-price').textContent = 'R$ ' + payload.valor;
+            adminUpdateCommission(adminEditCard);
+            adminCloseEditModal();
+
+            const msg = document.getElementById('adminSuccessMessage');
+            msg.style.backgroundColor = '#2ea44f';
+            msg.innerHTML = '<span>✏️</span> Venda alterada com sucesso!';
+            msg.classList.add('show');
+            setTimeout(() => msg.classList.remove('show'), 3000);
+        })
+        .catch(err => { console.error(err); alert('Erro ao salvar alterações.'); });
+    }
+
+    document.getElementById('adminEditModal').addEventListener('click', e => {
+        if (e.target === document.getElementById('adminEditModal')) adminCloseEditModal();
+    });
+</script>
+
+</div>

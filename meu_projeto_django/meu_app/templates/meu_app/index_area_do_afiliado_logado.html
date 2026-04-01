@@ -1,0 +1,161 @@
+{% extends 'meu_app/base.html' %}
+{% load static %}
+
+{% block intro %}
+{% endblock %}
+
+
+{% block top_bar %}
+<a href="/area-do-afiliado" class="top-bar-label">&Aacute;REA DO AFILIADO</a>
+<a href="/logout/" class="top-bar-label" style="margin-left: auto; font-size: 13px; opacity: 0.8;">Sair →</a>
+{% endblock %}
+
+{% block portal_area %}
+<div class="portal-wrapper">
+	<nav class="portal-tabs">
+		{% for slug, tab in affiliate_tabs %}
+			{% if slug == 'login' %}
+				{% url 'area_do_afiliado' as tab_href %}
+			{% else %}
+				{% url 'area_do_afiliado_tab' tab_slug=slug as tab_href %}
+			{% endif %}
+			<a href="{{ tab_href }}" class="portal-tab {% if active_tab == slug %}active{% endif %}" data-tab="{{ slug }}">{{ tab.label }}</a>
+		{% endfor %}
+	</nav>
+	<section class="portal-card">
+		<div class="portal-card-body" id="portal-card-body" data-active-tab="{{ active_tab|default:'login' }}">
+			{% for slug, tab in affiliate_tabs %}
+			<div class="portal-tab-panel{% if active_tab == slug %} active{% endif %}" data-tab-panel="{{ slug }}"{% if active_tab != slug %} hidden{% endif %}>
+				{% include tab.template %}
+			</div>
+			{% endfor %}
+		</div>
+	</section>
+</div>
+{% endblock %}
+
+
+
+{% block nav %}{% endblock %}
+{% block headline %}{% endblock %}
+{% block content %}{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<script>
+	document.addEventListener('DOMContentLoaded', function () {
+		var header = document.getElementById('header');
+		if (header && !header.classList.contains('login-area')) {
+			header.classList.add('login-area');
+		}
+
+		var contentContainer = document.getElementById('portal-card-body');
+		var tabs = document.querySelectorAll('.portal-tab');
+		var panels = document.querySelectorAll('.portal-tab-panel');
+		if (!contentContainer || tabs.length === 0 || panels.length === 0) {
+			return;
+		}
+
+		var tabUrlMap = {};
+		tabs.forEach(function (tab) {
+			var slug = tab.getAttribute('data-tab');
+			if (slug) {
+				tabUrlMap[slug] = tab.getAttribute('href');
+			}
+		});
+
+		function updateTabHighlight(slug) {
+			tabs.forEach(function (tab) {
+				if (tab.getAttribute('data-tab') === slug) {
+					tab.classList.add('active');
+				} else {
+					tab.classList.remove('active');
+				}
+			});
+			contentContainer.setAttribute('data-active-tab', slug);
+		}
+
+		function getSlugFromPath(pathname) {
+			var cleaned = pathname.replace(/\/+$/, '');
+			if (!cleaned) {
+				return 'login';
+			}
+			var parts = cleaned.split('/');
+			var candidate = parts.pop();
+			if (!candidate || candidate === 'area-do-afiliado') {
+				return 'login';
+			}
+			return candidate;
+		}
+
+		function showPanel(slug) {
+			var found = false;
+			panels.forEach(function (panel) {
+				if (panel.getAttribute('data-tab-panel') === slug) {
+					panel.hidden = false;
+					panel.classList.add('active');
+					found = true;
+				} else {
+					panel.hidden = true;
+					panel.classList.remove('active');
+				}
+			});
+			return found;
+		}
+
+		function activateTab(slug, url, options) {
+			options = options || {};
+			if (!slug || !tabUrlMap[slug]) {
+				slug = 'login';
+			}
+			if (!url) {
+				url = tabUrlMap[slug] || window.location.pathname;
+			}
+
+			var panelShown = showPanel(slug);
+			if (!panelShown) {
+				return false;
+			}
+
+			updateTabHighlight(slug);
+			contentContainer.setAttribute('data-active-tab', slug);
+
+			if (!options.skipHistory && window.history && window.history.pushState) {
+				window.history.pushState({ tabSlug: slug }, '', url);
+			}
+
+			return true;
+		}
+
+		tabs.forEach(function (tab) {
+			tab.addEventListener('click', function (event) {
+				if (window.history && window.history.pushState) {
+					event.preventDefault();
+					var slug = tab.getAttribute('data-tab');
+					var ok = activateTab(slug, tab.getAttribute('href'), { skipHistory: false });
+					if (!ok) {
+						window.location.href = tab.getAttribute('href');
+					}
+				}
+			});
+		});
+
+		if (window.history && window.history.replaceState) {
+			var initialSlug = contentContainer.getAttribute('data-active-tab') || 'login';
+			activateTab(initialSlug, tabUrlMap[initialSlug] || window.location.pathname, { skipHistory: true });
+			window.history.replaceState({ tabSlug: initialSlug }, '', window.location.href);
+		}
+
+		window.addEventListener('popstate', function (event) {
+			var slug = (event.state && event.state.tabSlug) || getSlugFromPath(window.location.pathname);
+			if (!tabUrlMap[slug]) {
+				slug = 'login';
+			}
+			var changed = activateTab(slug, tabUrlMap[slug] || window.location.pathname, { skipHistory: true });
+			if (!changed) {
+				window.location.href = tabUrlMap[slug] || tabUrlMap['login'];
+			}
+		});
+	});
+</script>
+{% endblock %}

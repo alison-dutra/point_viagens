@@ -1,0 +1,36 @@
+{% extends 'meu_app/base.html' %}
+{% load static %}
+
+{% block content %}
+
+{% block nav %}
+{% endblock %}
+
+<div class="tab-section">
+    <div class="login-wrapper">
+        <div class="login-card-logo"></div>
+        <div class="login-card">
+            <a class="login-back-link" href="/">Voltar</a>
+            <form method="post" action="{% url 'area_do_afiliado' %}" class="login-form">
+                {% csrf_token %}
+                <div class="login-field">
+                    <label class="login-label" for="username">Usuário</label>
+                    <input class="login-input" type="text" id="username" name="username" placeholder="Insira seu usuário" required />
+                </div>
+                <div class="login-field">
+                    <label class="login-label" for="password">Senha</label>
+                    <input class="login-input" type="password" id="password" name="password" placeholder="Insira sua senha" required />
+                </div>
+                {% if form.errors %}
+                <div style="color: red; margin-bottom: 10px; text-align: center; font-weight: bold;">
+                    Usuário ou senha incorretos!
+                </div>
+                {% endif %}
+                <button type="submit" class="login-button">ENTRAR</button>
+                <p class="login-meta">Quer se tornar um afiliado? <a href="/cadastro_afiliado/">Clique Aqui.</a></p>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

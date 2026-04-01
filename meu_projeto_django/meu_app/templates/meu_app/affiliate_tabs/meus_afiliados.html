@@ -1,0 +1,558 @@
+{% load static %}
+<div class="tab-section meus-clientes">
+<style>
+    .container-clientes {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .container-clientes h1 {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .afl-filter-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .afl-btn-filter {
+        padding: 8px 20px;
+        border: 1px solid #ddd;
+        background: #fff;
+        border-radius: 20px;
+        color: #555;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    .afl-btn-filter:hover,
+    .afl-btn-filter.active {
+        background: #0a2342;
+        color: white;
+        border-color: #0a2342;
+    }
+
+    .afl-btn-filter.active-pending {
+        background: #9a6700;
+        color: white;
+        border-color: #9a6700;
+    }
+
+    .afl-count {
+        display: inline-block;
+        background: rgba(255,255,255,0.25);
+        border-radius: 999px;
+        padding: 1px 7px;
+        font-size: 12px;
+        margin-left: 4px;
+        font-weight: 700;
+    }
+
+    .afl-btn-filter:not(.active):not(.active-pending) .afl-count {
+        background: #e9ecef;
+        color: #555;
+    }
+
+    .table-responsive { overflow-x: auto; }
+
+    .table-responsive table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 0;
+        font-size: 14px;
+    }
+
+    .table-responsive table th {
+        background-color: #0a2342;
+        color: white;
+        text-align: left;
+        padding: 12px 15px;
+        font-size: 13px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .table-responsive table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        color: #333;
+        vertical-align: middle;
+    }
+
+    .table-responsive table tr:hover { background-color: #f1f4ff; }
+
+    .afl-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .afl-badge-aprovado  { background: #dafbe1; color: #1a7f37; }
+    .afl-badge-pendente  { background: #fff8c5; color: #9a6700; }
+    .afl-badge-reprovado { background: #ffebe9; color: #cf222e; }
+
+    .afl-actions { display: flex; gap: 6px; flex-wrap: nowrap; }
+
+    .afl-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        font-family: inherit;
+    }
+
+    .afl-btn-approve { background: #2ea44f; color: white; }
+    .afl-btn-approve:hover { background: #238a3e; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(46,164,79,0.3); }
+
+    .afl-btn-reject  { background: #cf222e; color: white; }
+    .afl-btn-reject:hover  { background: #a8191f; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(207,34,46,0.3); }
+
+    .afl-btn-edit    { background: #6c757d; color: white; }
+    .afl-btn-edit:hover    { background: #565e64; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(108,117,125,0.3); }
+
+    .afl-btn-doc { background: #0a2342; color: white; }
+    .afl-btn-doc:hover { background: #081a30; transform: translateY(-1px); }
+
+    .afl-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+    .afl-modal-overlay.show { display: flex; }
+
+    .afl-modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        animation: aflSlideDown 0.3s ease;
+    }
+
+    @keyframes aflSlideDown {
+        from { transform: translateY(-40px); opacity: 0; }
+        to   { transform: translateY(0);     opacity: 1; }
+    }
+
+    .afl-modal-icon    { font-size: 46px; margin-bottom: 12px; }
+    .afl-modal-title   { font-size: 20px; font-weight: 700; color: #333; margin-bottom: 8px; }
+    .afl-modal-message { font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.5; }
+
+    .afl-obs-field { text-align: left; margin-bottom: 18px; }
+    .afl-obs-field label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+    .afl-obs-field textarea {
+        width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px;
+        font-size: 13px; color: #333; resize: vertical; min-height: 75px;
+        font-family: inherit; transition: border-color 0.2s;
+    }
+    .afl-obs-field textarea:focus { outline: none; border-color: #0a2342; }
+    .afl-obs-error { color: #cf222e; font-size: 12px; margin-top: 4px; display: none; }
+
+    .afl-modal-buttons { display: flex; gap: 10px; justify-content: center; }
+    .afl-btn-modal { padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .afl-btn-confirm { background: #0a2342; color: white; }
+    .afl-btn-confirm:hover { background: #081a30; transform: translateY(-1px); }
+    .afl-btn-cancel  { background: #e1e4e8; color: #333; }
+    .afl-btn-cancel:hover { background: #d1d4d8; }
+
+    .afl-edit-modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        max-width: 520px;
+        width: 95%;
+        animation: aflSlideDown 0.3s ease;
+    }
+
+    .afl-edit-title {
+        font-size: 18px; font-weight: 700; color: #333;
+        margin-bottom: 20px; padding-bottom: 12px;
+        border-bottom: 2px solid #e1e4e8;
+    }
+
+    .afl-edit-field { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .afl-edit-field label {
+        font-size: 12px; font-weight: 600; color: #888;
+        text-transform: uppercase; min-width: 110px; width: 110px;
+    }
+    .afl-edit-field input {
+        flex: 1; padding: 7px 10px; border: 1px solid #ddd;
+        border-radius: 6px; font-size: 13px; color: #333;
+        font-family: inherit; transition: border-color 0.2s;
+    }
+    .afl-edit-field input:focus { outline: none; border-color: #0a2342; }
+
+    .afl-edit-buttons {
+        display: flex; gap: 10px; justify-content: flex-end;
+        margin-top: 20px; padding-top: 15px; border-top: 1px solid #e1e4e8;
+    }
+
+    .afl-toast {
+        position: fixed; bottom: 30px; right: 24px;
+        background: #0a2342; color: white;
+        padding: 13px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        display: flex; align-items: center; gap: 8px;
+        transform: translateY(80px); opacity: 0;
+        transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        z-index: 3000;
+    }
+    .afl-toast.show { transform: translateY(0); opacity: 1; }
+    .afl-toast.success { background: #1a7f37; }
+    .afl-toast.danger  { background: #cf222e; }
+    .afl-toast.warning { background: #9a6700; }
+
+    .afl-empty {
+        text-align: center; padding: 40px 20px;
+        color: #aaa; font-size: 15px; display: none;
+    }
+
+    @media (max-width: 768px) {
+        .afl-actions { flex-wrap: wrap; }
+        .afl-edit-field { flex-direction: column; align-items: flex-start; }
+        .afl-edit-field label { min-width: unset; width: auto; }
+        .afl-edit-field input { width: 100%; }
+    }
+</style>
+
+<div class="afl-modal-overlay" id="aflConfirmModal">
+    <div class="afl-modal-content">
+        <div class="afl-modal-icon" id="aflModalIcon">⚠️</div>
+        <div class="afl-modal-title" id="aflModalTitle">Tem certeza?</div>
+        <div class="afl-modal-message" id="aflModalMessage"></div>
+        <div class="afl-obs-field">
+            <label id="aflObsLabel">Observação</label>
+            <textarea id="aflObsTexto" placeholder="Digite uma observação..."></textarea>
+            <div class="afl-obs-error" id="aflObsError">A observação é obrigatória para reprovar um cadastro.</div>
+        </div>
+        <div class="afl-modal-buttons">
+            <button class="afl-btn-modal afl-btn-cancel"  onclick="aflCloseModal()">Cancelar</button>
+            <button class="afl-btn-modal afl-btn-confirm" onclick="aflConfirmAction()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<div class="afl-modal-overlay" id="aflEditModal">
+    <div class="afl-edit-modal-content">
+        <div class="afl-edit-title">✏️ Alterar Afiliado — <span id="aflEditModalName"></span></div>
+        <div class="afl-edit-field"><label>Nome</label><input type="text" id="afl-edit-nome"></div>
+        <div class="afl-edit-field"><label>CPF</label><input type="text" id="afl-edit-cpf"></div>
+        <div class="afl-edit-field"><label>RG</label><input type="text" id="afl-edit-rg"></div>
+        <div class="afl-edit-field"><label>Endereço</label><input type="text" id="afl-edit-endereco"></div>
+        <div class="afl-edit-field"><label>Celular</label><input type="text" id="afl-edit-cel"></div>
+        <div class="afl-edit-field"><label>E-mail</label><input type="text" id="afl-edit-email"></div>
+        <div class="afl-edit-buttons">
+            <button class="afl-btn-modal afl-btn-cancel"  onclick="aflCloseEditModal()">Cancelar</button>
+            <button class="afl-btn-modal afl-btn-confirm" onclick="aflSaveEdit()">💾 Salvar alterações</button>
+        </div>
+    </div>
+</div>
+
+<div class="afl-toast" id="aflToast"></div>
+
+<div class="container-clientes">
+    <h1>Lista de Afiliados</h1>
+
+    <div class="afl-filter-group">
+        <button class="afl-btn-filter active" data-filter="todos">Todos <span class="afl-count" id="cnt-todos">0</span></button>
+        <button class="afl-btn-filter" data-filter="aprovado">Aprovados <span class="afl-count" id="cnt-aprovado">0</span></button>
+        <button class="afl-btn-filter active-pending" data-filter="pendente" style="background:#9a6700;color:white;border-color:#9a6700;">Pendentes <span class="afl-count" id="cnt-pendente">0</span></button>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Nome Completo</th>
+                    <th>CPF</th>
+                    <th>RG</th>
+                    <th>Endereço</th>
+                    <th>Celular</th>
+                    <th>E-mail</th>
+                    <th>Documento</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="afl-tbody">
+                {% for afiliado in afiliados %}
+                <tr data-status="{{ afiliado.status }}" data-id="{{ afiliado.id }}">
+                    <td>
+                    <span class="afl-badge 
+                    {% if afiliado.status == 'aprovado' %}afl-badge-aprovado
+                    {% elif afiliado.status == 'reprovado' %}afl-badge-reprovado
+                    {% else %}afl-badge-pendente{% endif %}">
+                    {{ afiliado.status|upper }}
+                    </span>
+</td>
+                    <td>{{ afiliado.nome_afiliado }}</td>
+                    <td>{{ afiliado.cpf }}</td>
+                    <td>{{ afiliado.rg }}</td>
+                    <td>{{ afiliado.endereco }}</td>
+                    <td>{{ afiliado.celular }}</td>
+                    <td>{{ afiliado.email }}</td>
+                    <td>
+                        {% if afiliado.documentos.all %}
+                            {% for doc in afiliado.documentos.all %}
+                                <a href="{{ doc.arquivo.url }}" target="_blank" class="afl-btn afl-btn-doc" style="margin-bottom:4px; display:inline-block;">
+                                    📄 Doc {{ forloop.counter }}
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <span style="color:#aaa;font-size:12px;">Sem doc</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if afiliado.status == 'pendente' %}
+                        <div class="afl-actions">
+                        <button class="afl-btn afl-btn-edit"    onclick="aflOpenEdit(this)">✏️ Alterar</button>
+                        <button class="afl-btn afl-btn-approve" onclick="aflOpenApprove(this)">✅ Aprovar</button>
+                        <button class="afl-btn afl-btn-reject"  onclick="aflOpenReject(this)">❌ Reprovar</button>
+                 </div>
+                 {% else %}
+               <span style="color:#aaa;font-size:12px;">—</span>
+               {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" style="text-align:center;color:#aaa;padding:40px;">Nenhum afiliado cadastrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="afl-empty" id="afl-empty">Nenhum afiliado encontrado nesta categoria.</div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const tbody = document.getElementById('afl-tbody');
+    const toast = document.getElementById('aflToast');
+    let currentRow = null, currentAction = null, editRow = null;
+
+    function updateCounts() {
+        const rows = [...tbody.querySelectorAll('tr:not(.afl-obs-row)')];
+        const cnt = { todos: rows.length, aprovado: 0, pendente: 0 };
+        rows.forEach(r => { if (cnt[r.dataset.status] !== undefined) cnt[r.dataset.status]++; });
+        document.getElementById('cnt-todos').textContent    = cnt.todos;
+        document.getElementById('cnt-aprovado').textContent = cnt.aprovado;
+        document.getElementById('cnt-pendente').textContent = cnt.pendente;
+    }
+
+    document.querySelectorAll('.afl-btn-filter').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.afl-btn-filter').forEach(b => {
+                b.classList.remove('active', 'active-pending');
+                b.style.background = ''; b.style.color = ''; b.style.borderColor = '';
+            });
+            const f = this.dataset.filter;
+            if (f === 'pendente') {
+                this.classList.add('active-pending');
+                this.style.background = '#9a6700'; this.style.color = 'white'; this.style.borderColor = '#9a6700';
+            } else {
+                this.classList.add('active');
+            }
+            let visible = 0;
+            tbody.querySelectorAll('tr:not(.afl-obs-row)').forEach(r => {
+                const show = f === 'todos' || r.dataset.status === f;
+                r.style.display = show ? '' : 'none';
+                const obsRow = r.nextElementSibling;
+                if (obsRow && obsRow.classList.contains('afl-obs-row')) obsRow.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+            document.getElementById('afl-empty').style.display = visible === 0 ? 'block' : 'none';
+        });
+    });
+
+    window.aflOpenApprove = function(btn) {
+        currentRow = btn.closest('tr'); currentAction = 'approve';
+        document.getElementById('aflModalIcon').textContent = '✅';
+        document.getElementById('aflModalTitle').textContent = 'Aprovar cadastro?';
+        document.getElementById('aflModalMessage').textContent = 'O afiliado será marcado como APROVADO e terá acesso ao sistema.';
+        document.getElementById('aflObsLabel').textContent = 'Observação (opcional)';
+        document.getElementById('aflObsTexto').placeholder = 'Digite uma observação (opcional)...';
+        document.getElementById('aflObsTexto').value = '';
+        document.getElementById('aflObsError').style.display = 'none';
+        document.getElementById('aflConfirmModal').classList.add('show');
+    };
+
+    window.aflOpenReject = function(btn) {
+        currentRow = btn.closest('tr'); currentAction = 'reject';
+        document.getElementById('aflModalIcon').textContent = '❌';
+        document.getElementById('aflModalTitle').textContent = 'Reprovar cadastro?';
+        document.getElementById('aflModalMessage').textContent = 'O afiliado será marcado como REPROVADO.';
+        document.getElementById('aflObsLabel').textContent = 'Motivo (obrigatório)';
+        document.getElementById('aflObsTexto').placeholder = 'Explique o motivo da reprovação...';
+        document.getElementById('aflObsTexto').value = '';
+        document.getElementById('aflObsError').style.display = 'none';
+        document.getElementById('aflConfirmModal').classList.add('show');
+    };
+
+    window.aflCloseModal = function() {
+        document.getElementById('aflConfirmModal').classList.remove('show');
+        currentRow = null; currentAction = null;
+    };
+
+    window.aflConfirmAction = function() {
+    if (!currentRow || !currentAction) return;
+
+    const btnConfirm = document.querySelector('#aflConfirmModal .afl-btn-confirm');
+    if (btnConfirm.disabled) return;
+    btnConfirm.disabled = true;
+
+    const obs = document.getElementById('aflObsTexto').value.trim();
+    if (currentAction === 'reject' && obs === '') {
+        document.getElementById('aflObsError').style.display = 'block';
+        btnConfirm.disabled = false;
+        return;
+    }
+
+    const afiliadoId = currentRow.getAttribute('data-id');
+    const novoStatus = currentAction === 'approve' ? 'aprovado' : 'reprovado';
+
+    fetch(`/alterar_afiliado/${afiliadoId}/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: novoStatus, observacao: obs })
+    })
+    .then(res => res.json())
+    .then(data => {
+        btnConfirm.disabled = false;
+        if (!data.success) { alert('Erro: ' + data.message); return; }
+
+        const badge = currentRow.querySelector('.afl-badge');
+        const actionsDiv = currentRow.querySelector('.afl-actions');
+
+        if (novoStatus === 'aprovado') {
+            currentRow.dataset.status = 'aprovado';
+            badge.className = 'afl-badge afl-badge-aprovado';
+            badge.textContent = 'APROVADO';
+            actionsDiv.innerHTML = `<span style="color:#aaa;font-size:12px;">—</span>`;
+            showToast('✅ Cadastro aprovado com sucesso!', 'success');
+        } else {
+            currentRow.dataset.status = 'reprovado';
+            badge.className = 'afl-badge afl-badge-reprovado';
+            badge.textContent = 'REPROVADO';
+            actionsDiv.innerHTML = `<span style="color:#aaa;font-size:12px;">—</span>`;
+            if (obs) {
+                let obsRow = currentRow.nextElementSibling;
+                if (!obsRow || !obsRow.classList.contains('afl-obs-row')) {
+                    obsRow = document.createElement('tr');
+                    obsRow.className = 'afl-obs-row';
+                    obsRow.style.background = '#fff8f8';
+                    currentRow.after(obsRow);
+                }
+                obsRow.innerHTML = `<td colspan="9" style="padding:10px 15px 14px 30px;border-bottom:2px solid #f5c6c6;">
+                    <div style="display:inline-flex;align-items:center;gap:8px;background:#ffebe9;border:1px solid #f5c6c6;border-radius:6px;padding:7px 14px;">
+                        <span style="font-size:12px;font-weight:700;color:#cf222e;">⚠️ Motivo da reprovação:</span>
+                        <span style="font-size:13px;color:#555;">${obs}</span>
+                    </div>
+                </td>`;
+            }
+            showToast('❌ Cadastro reprovado.', 'danger');
+        }
+
+        const activeFilter = document.querySelector('.afl-btn-filter.active, .afl-btn-filter.active-pending');
+        if (activeFilter) {
+            const f = activeFilter.dataset.filter;
+            if (f !== 'todos' && currentRow.dataset.status !== f) {
+                currentRow.style.display = 'none';
+                const obsRow = currentRow.nextElementSibling;
+                if (obsRow && obsRow.classList.contains('afl-obs-row')) obsRow.style.display = 'none';
+            }
+        }
+
+        updateCounts();
+        aflCloseModal();
+        setTimeout(() => window.location.reload(), 3500);
+    })
+    .catch(err => { btnConfirm.disabled = false; console.error(err); alert('Erro ao atualizar status.'); });
+};
+
+    window.aflOpenEdit = function(btn) {
+        editRow = btn.closest('tr');
+        const cells = editRow.querySelectorAll('td');
+        document.getElementById('aflEditModalName').textContent = cells[1].textContent.trim();
+        document.getElementById('afl-edit-nome').value     = cells[1].textContent.trim();
+        document.getElementById('afl-edit-cpf').value      = cells[2].textContent.trim();
+        document.getElementById('afl-edit-rg').value       = cells[3].textContent.trim();
+        document.getElementById('afl-edit-endereco').value = cells[4].textContent.trim();
+        document.getElementById('afl-edit-cel').value      = cells[5].textContent.trim();
+        document.getElementById('afl-edit-email').value    = cells[6].textContent.trim();
+        document.getElementById('aflEditModal').classList.add('show');
+    };
+
+    window.aflCloseEditModal = function() {
+        document.getElementById('aflEditModal').classList.remove('show');
+        editRow = null;
+    };
+
+    window.aflSaveEdit = function() {
+        if (!editRow) return;
+        const afiliadoId = editRow.getAttribute('data-id');
+
+        const payload = {
+            nome_afiliado: document.getElementById('afl-edit-nome').value,
+            cpf:           document.getElementById('afl-edit-cpf').value,
+            rg:            document.getElementById('afl-edit-rg').value,
+            endereco:      document.getElementById('afl-edit-endereco').value,
+            celular:       document.getElementById('afl-edit-cel').value,
+            email:         document.getElementById('afl-edit-email').value,
+        };
+
+        fetch(`/alterar_afiliado/${afiliadoId}/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) { alert('Erro: ' + data.message); return; }
+
+            const cells = editRow.querySelectorAll('td');
+            cells[1].textContent = payload.nome_afiliado;
+            cells[2].textContent = payload.cpf;
+            cells[3].textContent = payload.rg;
+            cells[4].textContent = payload.endereco;
+            cells[5].textContent = payload.celular;
+            cells[6].textContent = payload.email;
+            aflCloseEditModal();
+            showToast('✏️ Dados alterados com sucesso!', 'success');
+        })
+        .catch(err => { console.error(err); alert('Erro ao salvar alterações.'); });
+    };
+
+    document.getElementById('aflConfirmModal').addEventListener('click', e => { if (e.target.id === 'aflConfirmModal') aflCloseModal(); });
+    document.getElementById('aflEditModal').addEventListener('click',    e => { if (e.target.id === 'aflEditModal')    aflCloseEditModal(); });
+
+    function showToast(msg, type = '') {
+        toast.textContent = msg;
+        toast.className = 'afl-toast ' + type + ' show';
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    updateCounts();
+})();
+</script>
+</div>
