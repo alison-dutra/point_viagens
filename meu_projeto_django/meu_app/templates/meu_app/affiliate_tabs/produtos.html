@@ -1,0 +1,128 @@
+<div class="tab-section produtos">
+    <style>
+        .produtos .container-produtos { background: white; padding: 20px; border-radius: 12px; color: #333; }
+        .produtos h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
+        .produtos .produto-actions { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+        .produtos .produto-button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 14px; font-weight: 600; cursor: pointer; height: auto; line-height: normal; }
+        .produtos .produto-panel { background: #f8f8ff; border: 2px solid #667eea; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .produtos .produto-panel[hidden] { display: none; }
+        .produtos .produto-panel h2 { color: #667eea; font-size: 16px; margin-bottom: 16px; }
+        .produtos .produto-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
+        .produtos label { display: block; margin-bottom: 8px; color: #555; font-weight: 600; font-size: 14px; }
+        .produtos input, .produtos textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 14px; color: #000; box-sizing: border-box; background: white; }
+        .produtos input:focus, .produtos textarea:focus { outline: none; border-color: #667eea; }
+        .produtos .produto-submit { width: 100%; margin-top: 20px; }
+        .produtos .produto-table { overflow-x: auto; }
+        .produtos table { width: 100%; min-width: 980px; table-layout: fixed; border-collapse: collapse; margin-bottom: 20px; }
+        .produtos th { background: #0a2342; color: white; text-align: left; padding: 12px 15px; font-size: 13px; line-height: 1.35; text-transform: uppercase; white-space: nowrap; vertical-align: middle; }
+        .produtos td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; line-height: 1.45; color: #333; overflow-wrap: anywhere; vertical-align: top; }
+        .produtos th:nth-child(1), .produtos td:nth-child(1) { width: 20%; }
+        .produtos th:nth-child(2), .produtos td:nth-child(2) { width: 14%; }
+        .produtos th:nth-child(3), .produtos td:nth-child(3) { width: 15%; }
+        .produtos th:nth-child(4), .produtos td:nth-child(4) { width: 25%; }
+        .produtos th:nth-child(5), .produtos td:nth-child(5) { width: 12%; }
+        .produtos th:nth-child(6), .produtos td:nth-child(6) { width: 14%; }
+        .produtos tbody tr:hover { background: #f1f4ff; }
+        .produtos .produto-empty { text-align: center; color: #777; padding: 40px; }
+        .produtos .produto-success { padding: 12px; background: #e8f5e9; color: #256029; border-radius: 5px; margin-bottom: 16px; }
+        .produtos .errorlist { color: #b42318; margin: 6px 0; font-size: 14px; }
+        @media (max-width: 600px) { .produtos .produto-fields { grid-template-columns: 1fr; } }
+        .produtos .produto-success.error { background: #fff0f0; color: #b42318; }
+        .produtos .produto-row-actions { display: flex; gap: 8px; flex-wrap: nowrap; }
+        .produtos .produto-edit { background: #fff8c5; color: #9a6700; border: 1px solid #d4a72c; text-decoration: none; }
+        .produtos .produto-remove { background: #ffebe9; color: #cf222e; border: 1px solid #cf222e; }
+        .produtos .produto-cancel { background: #e1e4e8; color: #333; text-decoration: none; }
+        .produtos dialog { background: white; color: #333; border: none; border-radius: 12px; padding: 30px; width: min(600px, 90vw); max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
+        .produtos dialog::backdrop { background: rgba(0, 0, 0, .5); }
+        .produtos dialog h2 { color: #333; font-size: 20px; }
+        .produtos .produto-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    </style>
+    <div class="container-produtos">
+        <h1>Lista de Produtos</h1>
+        {% for message in messages %}
+            <div class="produto-success {{ message.tags }}" role="status">{{ message }}</div>
+        {% endfor %}
+        {% if not produto_editando %}
+        <div class="produto-actions">
+            <button type="button" class="produto-button" aria-controls="painelCadastroProduto"
+                    aria-expanded="{% if produto_form.errors %}true{% else %}false{% endif %}"
+                    onclick="var panel = document.getElementById('painelCadastroProduto'); panel.hidden = !panel.hidden; this.setAttribute('aria-expanded', String(!panel.hidden)); if (!panel.hidden) { panel.querySelector('input:not([type=hidden])').focus(); }">
+                + Cadastrar Produto
+            </button>
+        </div>
+        <div id="painelCadastroProduto" class="produto-panel"{% if not produto_form.errors %} hidden{% endif %}>
+            <h2>Cadastrar novo produto</h2>
+            <form method="post" action="{% url 'produtos' %}">
+                {% include 'meu_app/affiliate_tabs/produto_form_fields.html' %}
+                <button type="submit" class="produto-button produto-submit">Salvar Produto</button>
+            </form>
+        </div>
+        {% else %}
+        <dialog id="produtoEditDialog" aria-labelledby="produtoEditTitle">
+            <h2 id="produtoEditTitle">Editar produto</h2>
+            <form method="post" action="{% url 'editar_produto' produto_editando.pk %}">
+                {% include 'meu_app/affiliate_tabs/produto_form_fields.html' %}
+                <div class="produto-dialog-actions">
+                    <a href="{% url 'produtos' %}" class="produto-button produto-cancel">Cancelar</a>
+                    <button type="submit" class="produto-button">Salvar alterações</button>
+                </div>
+            </form>
+        </dialog>
+        <script>
+            (function () {
+                const dialog = document.getElementById('produtoEditDialog');
+                dialog.showModal();
+                dialog.addEventListener('cancel', function (event) {
+                    event.preventDefault();
+                    window.location.href = "{% url 'produtos' %}";
+                });
+            })();
+        </script>
+        {% endif %}
+        <dialog id="produtoRemoveDialog" aria-labelledby="produtoRemoveTitle">
+            <h2 id="produtoRemoveTitle">Remover produto?</h2>
+            <p>Deseja remover <strong id="produtoRemoveName"></strong>? Esta ação não poderá ser desfeita.</p>
+            <form id="produtoRemoveForm" method="post">
+                {% csrf_token %}
+                <div class="produto-dialog-actions">
+                    <button type="button" class="produto-button produto-cancel" onclick="document.getElementById('produtoRemoveDialog').close()">Cancelar</button>
+                    <button type="submit" class="produto-button produto-remove">Remover produto</button>
+                </div>
+            </form>
+        </dialog>
+        <div class="produto-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Categoria</th>
+                        <th>Comissão (%)</th>
+                        <th>Descrição</th>
+                        <th>Cadastro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for produto in produtos %}
+                        <tr>
+                            <td>{{ produto.nome_produto }}</td>
+                            <td>{{ produto.categoria_id|default_if_none:"—" }}</td>
+                            <td>{{ produto.comissao|default:"0" }}%</td>
+                            <td>{{ produto.descricao|default:"—" }}</td>
+                            <td>{{ produto.data_cadastro|date:"d/m/Y" }}</td>
+                            <td><div class="produto-row-actions">
+                                <a class="produto-button produto-edit" href="{% url 'editar_produto' produto.pk %}" aria-label="Editar {{ produto.nome_produto }}">Editar</a>
+                                <button type="button" class="produto-button produto-remove"
+                                        data-remove-url="{% url 'remover_produto' produto.pk %}" data-product-name="{{ produto.nome_produto }}"
+                                        aria-label="Remover {{ produto.nome_produto }}"
+                                        onclick="document.getElementById('produtoRemoveForm').action = this.dataset.removeUrl; document.getElementById('produtoRemoveName').textContent = this.dataset.productName; document.getElementById('produtoRemoveDialog').showModal();">Remover</button>
+                            </div></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="6" class="produto-empty">Nenhum produto cadastrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

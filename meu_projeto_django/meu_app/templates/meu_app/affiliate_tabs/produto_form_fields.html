@@ -1,0 +1,25 @@
+{% csrf_token %}
+{{ produto_form.non_field_errors }}
+<div class="produto-fields">
+    <div>
+        <label for="{{ produto_form.nome_produto.id_for_label }}">Nome do produto *</label>
+        {{ produto_form.nome_produto }}
+        {{ produto_form.nome_produto.errors }}
+    </div>
+    <div>
+        <label for="{{ produto_form.categoria_id.id_for_label }}">Categoria</label>
+        {{ produto_form.categoria_id }}
+        {{ produto_form.categoria_id.errors }}
+    </div>
+
+    <div>
+        <label for="{{ produto_form.comissao.id_for_label }}">Comissão (%)</label>
+        {{ produto_form.comissao }}
+        {{ produto_form.comissao.errors }}
+    </div>
+</div>
+<div style="margin-top: 16px;">
+    <label for="{{ produto_form.descricao.id_for_label }}">Descrição</label>
+    {{ produto_form.descricao }}
+    {{ produto_form.descricao.errors }}
+</div>

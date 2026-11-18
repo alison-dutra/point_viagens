@@ -1,0 +1,272 @@
+{% load static %}
+<div class="tab-section meu-perfil">
+<style>
+    .dashboard-container {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 20px;
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .personal-info {
+        border-right: 2px solid #eee;
+        padding-right: 20px;
+    }
+
+    .sales-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        align-content: start;
+    }
+
+    .info-box { margin-bottom: 15px; }
+
+    .info-label {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #888;
+        font-weight: bold;
+        margin-bottom: 2px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        color: #0a2342;
+        font-weight: 600;
+    }
+
+    .metric-card {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 5px solid #0a2342;
+    }
+
+    .metric-number {
+        font-size: 24px;
+        font-weight: 800;
+        display: block;
+    }
+
+    .title-row {
+        grid-column: span 2;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #0a2342;
+        padding-bottom: 10px;
+    }
+
+    h2 { margin: 0; font-size: 22px; color: #2c3e50; }
+
+    .comissoes-wrapper {
+        grid-column: span 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .export-buttons {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-export {
+        padding: 7px 14px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-export-pdf {
+        background: #cf222e;
+        color: white;
+    }
+
+    .btn-export-pdf:hover { background: #a8191f; transform: translateY(-1px); }
+
+    .btn-export-xlsx {
+        background: #1a7f37;
+        color: white;
+    }
+
+    .btn-export-xlsx:hover { background: #155d27; transform: translateY(-1px); }
+</style>
+
+<div class="dashboard-container">
+    <div class="title-row">
+        <h2>Perfil - Resumo de Vendas</h2>
+    </div>
+
+    <div class="personal-info">
+        <div class="info-box">
+            <span class="info-label">Meu ID</span>
+            <span class="info-value">#{{ perfil_dados.id }}</span>
+        </div>
+        <div class="info-box">
+            <span class="info-label">Nome</span>
+            <span class="info-value">{{ perfil_dados.nome }}</span>
+        </div>
+        <div class="info-box">
+            <span class="info-label">E-mail</span>
+            <span class="info-value">{{ perfil_dados.email }}</span>
+        </div>
+        <div class="info-box">
+            <span class="info-label">CPF</span>
+            <span class="info-value">{{ perfil_dados.cpf }}</span>
+        </div>
+    </div>
+
+    <div class="sales-metrics">
+        <div class="metric-card">
+            <span class="info-label">Total Realizadas</span>
+            <span class="metric-number" style="color: #0a2342;">{{ perfil_dados.total_realizadas }}</span>
+        </div>
+        <div class="metric-card" style="border-left-color: #2ea44f;">
+            <span class="info-label">Aprovadas</span>
+            <span class="metric-number" style="color: #2ea44f;">{{ perfil_dados.total_aprovadas }}</span>
+        </div>
+        <div class="metric-card" style="border-left-color: #cf222e;">
+            <span class="info-label">Reprovadas</span>
+            <span class="metric-number" style="color: #cf222e;">{{ perfil_dados.total_reprovadas }}</span>
+        </div>
+        <div class="metric-card" style="border-left-color: #9a6700;">
+            <span class="info-label">Pendentes</span>
+            <span class="metric-number" style="color: #9a6700;">{{ perfil_dados.total_pendentes }}</span>
+        </div>
+
+        <div class="comissoes-wrapper">
+            <div class="metric-card" style="border-left-color: #1a7f37;">
+                <span class="info-label">Total em Comissões à Receber (1,5%)</span>
+                <span class="metric-number" style="color: #1a7f37;">R$ {{ perfil_dados.total_comissao|floatformat:2 }}</span>
+            </div>
+
+            <div class="metric-card" style="border-left-color: #1864ab;">
+                <span class="info-label">Comissões Pagas</span>
+                <span class="metric-number" style="color: #1864ab;">R$ {{ perfil_dados.total_comissoes_pagas|floatformat:2 }}</span>
+                <div class="export-buttons">
+                    <a href="/extrato-comissoes-pdf/{{ perfil_dados.id }}/" class="btn-export btn-export-pdf">📄 Extrato PDF</a>
+                    <a href="/extrato-comissoes-xlsx/{{ perfil_dados.id }}/" class="btn-export btn-export-xlsx">📊 Extrato Excel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="grid-column: span 2; margin-top: 10px;">
+    <button onclick="document.getElementById('modalAlterarSenha').classList.add('show')"
+            style="background:#0a2342; color:white; padding:10px 20px; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer;">
+        🔒 Alterar Senha
+    </button>
+</div>
+<div id="modalAlterarSenha" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:12px; max-width:400px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+        <h3 style="margin:0 0 20px; color:#0a2342; font-size:18px;">🔒 Alterar Senha</h3>
+        <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:12px; font-weight:700; text-transform:uppercase; color:#888; margin-bottom:4px;">Senha Atual</label>
+            <input type="password" id="senha-atual" style="width:100%; padding:10px; border:1.5px solid #ddd; border-radius:6px; font-size:14px; box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:12px; font-weight:700; text-transform:uppercase; color:#888; margin-bottom:4px;">Nova Senha</label>
+            <input type="password" id="senha-nova" style="width:100%; padding:10px; border:1.5px solid #ddd; border-radius:6px; font-size:14px; box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:20px;">
+            <label style="display:block; font-size:12px; font-weight:700; text-transform:uppercase; color:#888; margin-bottom:4px;">Confirmar Nova Senha</label>
+            <input type="password" id="senha-confirma" style="width:100%; padding:10px; border:1.5px solid #ddd; border-radius:6px; font-size:14px; box-sizing:border-box;">
+        </div>
+        <div id="senha-erro" style="display:none; color:#cf222e; font-size:13px; margin-bottom:12px;"></div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button onclick="document.getElementById('modalAlterarSenha').classList.remove('show'); document.getElementById('modalAlterarSenha').style.display='none';"
+                    style="padding:10px 20px; background:#e1e4e8; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer;">
+                Cancelar
+            </button>
+            <button onclick="alterarSenha()"
+                    style="padding:10px 20px; background:#0a2342; color:white; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer;">
+                Salvar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('modalAlterarSenha').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.remove('show');
+        this.style.display = 'none';
+    }
+});
+
+document.querySelectorAll('#modalAlterarSenha button, #modalAlterarSenha').forEach(el => {
+    el.addEventListener('click', function() {
+        const modal = document.getElementById('modalAlterarSenha');
+        if (modal.classList.contains('show')) {
+            modal.style.display = 'flex';
+        }
+    });
+});
+
+document.getElementById('modalAlterarSenha').style.display = 'none';
+document.querySelector('[onclick*="modalAlterarSenha"]').addEventListener('click', function() {
+    const modal = document.getElementById('modalAlterarSenha');
+    modal.style.display = 'flex';
+});
+
+function alterarSenha() {
+    const atual    = document.getElementById('senha-atual').value;
+    const nova     = document.getElementById('senha-nova').value;
+    const confirma = document.getElementById('senha-confirma').value;
+    const erro     = document.getElementById('senha-erro');
+
+    if (!atual || !nova || !confirma) {
+        erro.style.display = 'block';
+        erro.textContent = 'Preencha todos os campos.';
+        return;
+    }
+    if (nova !== confirma) {
+        erro.style.display = 'block';
+        erro.textContent = 'A nova senha e a confirmação não coincidem.';
+        return;
+    }
+    if (nova.length < 6) {
+        erro.style.display = 'block';
+        erro.textContent = 'A nova senha deve ter pelo menos 6 caracteres.';
+        return;
+    }
+
+    erro.style.display = 'none';
+
+    fetch('/alterar-senha/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ senha_atual: atual, senha_nova: nova })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('modalAlterarSenha').style.display = 'none';
+            document.getElementById('senha-atual').value = '';
+            document.getElementById('senha-nova').value = '';
+            document.getElementById('senha-confirma').value = '';
+            alert('✅ Senha alterada com sucesso!');
+        } else {
+            erro.style.display = 'block';
+            erro.textContent = data.message;
+        }
+    });
+}
+</script>
+</div>

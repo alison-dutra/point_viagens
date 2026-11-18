@@ -1,0 +1,545 @@
+{% load static %}
+<div class="tab-section nova-venda">
+<style>
+    .container-nova-venda {
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        width: 100%;
+    }
+
+    .container-nova-venda h1 {
+        color: #333;
+        margin-bottom: 30px;
+        text-align: center;
+        font-size: 28px;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    label { display: block; margin-bottom: 8px; color: #555; font-weight: 600; font-size: 14px; }
+
+    input[type="text"], input[type="number"], input[type="datetime-local"], select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 5px;
+        font-size: 14px;
+        color: #000;
+        transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus { outline: none; border-color: #667eea; }
+    input[readonly] { background-color: #f0f0f0; color: #888; cursor: not-allowed; }
+
+    .btn-group { display: flex; gap: 15px; margin-top: 30px; }
+
+    .container-nova-venda button {
+        flex: 1;
+        padding: 14px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+    .btn-reset { background: #f0f0f0; color: #333; }
+    .required { color: #e74c3c; }
+
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+    .modal-reg {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-reg.show { display: flex; opacity: 1; }
+
+    .modal-reg-content {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transform: translateY(-20px);
+        transition: transform 0.3s ease;
+    }
+
+    .modal-reg.show .modal-reg-content { transform: translateY(0); }
+
+    .modal-reg-icon { font-size: 50px; margin-bottom: 20px; display: inline-block; }
+    .modal-reg-title { font-size: 22px; font-weight: 700; color: #333; margin-bottom: 10px; }
+    .modal-reg-message { color: #666; margin-bottom: 25px; line-height: 1.5; }
+    .modal-reg-actions { display: flex; gap: 12px; }
+
+    .btn-reg-confirm {
+        background-color: #1a1a2e;
+        color: white;
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .btn-reg-cancel {
+        background-color: #e2e8f0;
+        color: #4a5568;
+        flex: 1;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .success-reg-message {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background-color: #2ea44f;
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 2000;
+        transform: translateX(150%);
+        transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        font-weight: 600;
+    }
+
+    .success-reg-message.show { transform: translateX(0); }
+
+    .cadastro-cliente-panel {
+        display: none;
+        background: #f8f8ff;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 10px;
+        animation: slideDown 0.3s ease;
+    }
+
+    .cadastro-cliente-panel.show { display: block; }
+
+    .cliente-info-panel {
+        display: none;
+        background: #f0faf4;
+        border: 2px solid #2ea44f;
+        border-radius: 8px;
+        padding: 15px 20px;
+        margin-top: 10px;
+        animation: slideDown 0.3s ease;
+    }
+
+    .cliente-info-panel.show { display: block; }
+
+    .passagem-panel {
+        display: none;
+        background: #f8f8ff;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 10px;
+        animation: slideDown 0.3s ease;
+    }
+    .passagem-panel.show { display: block; }
+    .passagem-panel-title { color: #667eea; font-size: 14px; font-weight: 700; margin: 0 0 14px; }
+
+    .cliente-info-panel .info-row {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .cliente-info-panel .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .cliente-info-panel .info-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        color: #888;
+        font-weight: 600;
+    }
+
+    .cliente-info-panel .info-value {
+        font-size: 14px;
+        color: #0a2342;
+        font-weight: 600;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .cadastro-cliente-panel .panel-title {
+        color: #667eea;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .btn-salvar-cliente {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+        width: 100%;
+        transition: all 0.3s;
+    }
+
+    .btn-salvar-cliente:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+
+    .cpf-erro {
+        color: #e74c3c;
+        font-size: 12px;
+        margin-top: 6px;
+        display: none;
+    }
+
+    .cpf-erro.show { display: block; }
+</style>
+
+<div class="container-nova-venda">
+    <h1>Cadastro de Vendas</h1>
+
+    <form id="vendaForm" method="POST" action="{% url 'nova_venda' %}">
+        {% csrf_token %}
+
+        <!-- NOVO CAMPO: Código da Venda Manual -->
+        <div class="form-row">
+            <div class="form-group">
+                <label>Código da Venda <span class="required">*</span></label>
+                <input type="text" name="codigo_venda" id="codigo_venda" placeholder="Ex: #539C1CF2" required>
+            </div>
+            <div class="form-group">
+                <label>CPF do Afiliado</label>
+                <input type="text" name="afiliado_cpf" id="afiliado_cpf" value="{{ afiliado_logado_cpf }}" readonly>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>CPF do Cliente {% if not user.is_superuser %}<span class="required">*</span>{% endif %}</label>
+                <input type="text" name="cliente_id" id="cpf_cliente" placeholder="000.000.000-00" maxlength="14" {% if not user.is_superuser %}required{% endif %}>
+                <span class="cpf-erro" id="cpfErro">⚠️ CPF não encontrado. Preencha os dados abaixo para cadastrar o cliente.</span>
+
+                <!-- Info do cliente encontrado -->
+                <div class="cliente-info-panel" id="clienteInfoPanel">
+                    <div class="info-row">
+                        <div class="info-item">
+                            <span class="info-label">Nome</span>
+                            <span class="info-value" id="cliente-nome">—</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Celular</span>
+                            <span class="info-value" id="cliente-celular">—</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value" id="cliente-email">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cadastro-cliente-panel" id="cadastroClientePanel">
+                    <p class="panel-title">📋 Cadastrar novo cliente</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nome <span class="required">*</span></label>
+                            <input type="text" id="c_nome" placeholder="Nome completo">
+                        </div>
+                        <div class="form-group">
+                            <label>Nascimento <span class="required">*</span></label>
+                            <input type="text" id="c_nascimento" placeholder="DD/MM/AAAA">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Celular <span class="required">*</span></label>
+                            <input type="text" id="c_celular" placeholder="(00) 00000-0000">
+                        </div>
+                        <div class="form-group">
+                            <label>Email <span class="required">*</span></label>
+                            <input type="text" id="c_email" placeholder="email@exemplo.com">
+                        </div>
+                    </div>
+                    <button type="button" class="btn-salvar-cliente" onclick="salvarCliente()">✅ Salvar Cliente e Continuar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Produto <span class="required">*</span></label>
+                <select name="produto_id" required>
+                    <option value="" disabled selected>Selecione um produto</option>
+                    {% for produto in produtos %}<option value="{{ produto.id }}" data-nome="{{ produto.nome_produto }}" data-categoria="{{ produto.categoria_id|default_if_none:'' }}">{{ produto.nome_produto }}</option>{% endfor %}
+                </select>
+                <div class="passagem-panel" id="passagemAereaPanel">
+                    <p class="passagem-panel-title">Dados da passagem aérea</p>
+                    <div class="form-group">
+                        <label for="data_hora_ida">Data e Hora Ida <span class="required">*</span></label>
+                        <input type="datetime-local" name="data_hora_ida" id="data_hora_ida">
+                    </div>
+                    <div class="form-group">
+                        <label for="data_hora_volta">Data e Hora Volta <span class="required">*</span></label>
+                        <input type="datetime-local" name="data_hora_volta" id="data_hora_volta">
+                    </div>
+                    <div class="form-group">
+                        <label for="localizador_reserva">Localizador da Reserva <span class="required">*</span></label>
+                        <input type="text" name="localizador_reserva" id="localizador_reserva" maxlength="100" pattern="[A-Za-z0-9]+" title="Use apenas letras e números">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Tipo de Venda <span class="required">*</span></label>
+                <select name="tipo_venda" required>
+                    <option value="PIX">PIX</option>
+                    <option value="Cartão de Debito">Cartão de Debito</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Descrição <span class="required">*</span></label>
+            <input type="text" name="descricao_venda" required>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Valor <span class="required">*</span></label>
+                <input type="number" step="0.01" name="valor" id="valor" required>
+            </div>
+            <div class="form-group">
+                <label>Data da Venda</label>
+                <input type="datetime-local" id="data_venda" name="data_venda">
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button type="submit" class="btn-submit">💾 Cadastrar Venda</button>
+            <button type="reset" class="btn-reset">🔄 Limpar</button>
+        </div>
+    </form>
+</div>
+
+<div id="confirmRegModal" class="modal-reg">
+    <div class="modal-reg-content">
+        <div class="modal-reg-icon">💾</div>
+        <h2 class="modal-reg-title">Confirmar Cadastro</h2>
+        <p class="modal-reg-message">Deseja realmente cadastrar esta venda no sistema?</p>
+        <div class="modal-reg-actions">
+            <button type="button" class="btn-reg-cancel" onclick="closeRegModal()">Cancelar</button>
+            <button type="button" class="btn-reg-confirm" onclick="confirmRegAction()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<div id="regSuccessMessage" class="success-reg-message">
+    <span>✅</span> Sua venda foi cadastrada com sucesso! Os dados serão analisados pelo administrador e você poderá acompanhar o status na aba 'Minhas Vendas'.
+</div>
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const offset = now.getTimezoneOffset() * 60000;
+        const localISOTime = new Date(now - offset).toISOString().slice(0, 16);
+        const dataField = document.getElementById('data_venda');
+        if(dataField) dataField.value = localISOTime;
+    });
+
+    const produtoSelect = document.querySelector('[name="produto_id"]');
+    const passagemPanel = document.getElementById('passagemAereaPanel');
+    const camposPassagem = ['data_hora_ida', 'data_hora_volta', 'localizador_reserva']
+        .map(id => document.getElementById(id));
+    function atualizarCamposPassagem() {
+        const option = produtoSelect.selectedOptions[0];
+        const textoProduto = `${option?.dataset.nome || ''} ${option?.dataset.categoria || ''}`
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        const passagemAerea = textoProduto.includes('passagem aerea');
+        passagemPanel.classList.toggle('show', passagemAerea);
+        camposPassagem.forEach(campo => {
+            campo.required = passagemAerea;
+            if (!passagemAerea) campo.value = '';
+        });
+    }
+    produtoSelect.addEventListener('change', atualizarCamposPassagem);
+
+    document.getElementById('valor').addEventListener('blur', function(e) {
+        if (e.target.value) { e.target.value = parseFloat(e.target.value).toFixed(2); }
+    });
+
+    // Máscara CPF
+    document.getElementById('cpf_cliente').addEventListener('input', function() {
+        let v = this.value.replace(/\D/g, '').slice(0, 11);
+        if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+        else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+        else if (v.length > 3) v = v.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+        this.value = v;
+    });
+
+    document.getElementById('cpf_cliente').addEventListener('input', function() {
+        const cpf = this.value.trim();
+        if (cpf.length < 14) {
+            document.getElementById('cadastroClientePanel').classList.remove('show');
+            document.getElementById('clienteInfoPanel').classList.remove('show');
+            document.getElementById('cpfErro').classList.remove('show');
+            return;
+        }
+
+        fetch("{% url 'nova_venda' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ verificar_cpf: true, cliente_id: cpf })
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (!res.success) {
+                document.getElementById('cadastroClientePanel').classList.add('show');
+                document.getElementById('clienteInfoPanel').classList.remove('show');
+                document.getElementById('cpfErro').classList.add('show');
+            } else {
+                document.getElementById('cadastroClientePanel').classList.remove('show');
+                document.getElementById('cpfErro').classList.remove('show');
+
+                // Busca dados do cliente
+                fetch("{% url 'nova_venda' %}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ buscar_cliente: true, cliente_id: cpf })
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        document.getElementById('cliente-nome').textContent    = d.nome;
+                        document.getElementById('cliente-celular').textContent = d.celular;
+                        document.getElementById('cliente-email').textContent   = d.email;
+                        document.getElementById('clienteInfoPanel').classList.add('show');
+                    }
+                });
+            }
+        });
+    });
+
+    function salvarCliente() {
+        const cpf = document.getElementById('cpf_cliente').value.trim();
+        const nome = document.getElementById('c_nome').value.trim();
+        const nascimento = document.getElementById('c_nascimento').value.trim();
+        const celular = document.getElementById('c_celular').value.trim();
+        const email = document.getElementById('c_email').value.trim();
+
+        if (!nome || !nascimento || !celular || !email) {
+            alert('Preencha todos os campos do cliente.');
+            return;
+        }
+
+        fetch("{% url 'salvar_cliente' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, cpf, nascimento, celular, email })
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.success) {
+                document.getElementById('cadastroClientePanel').classList.remove('show');
+                document.getElementById('cpfErro').classList.remove('show');
+                alert('✅ Cliente cadastrado! Agora você pode registrar a venda.');
+            } else {
+                alert('Erro ao salvar cliente: ' + res.message);
+            }
+        });
+    }
+
+    const vendaForm = document.getElementById('vendaForm');
+
+    vendaForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (vendaForm.checkValidity()) {
+            document.getElementById('confirmRegModal').classList.add('show');
+        } else {
+            vendaForm.reportValidity();
+        }
+    });
+
+    function closeRegModal() {
+        document.getElementById('confirmRegModal').classList.remove('show');
+    }
+
+    function confirmRegAction() {
+        closeRegModal();
+
+        const form = document.getElementById('vendaForm');
+        const data = {
+            codigo_venda: document.getElementById('codigo_venda').value, // <-- ENVIANDO O CÓDIGO DA VENDA MANUAL
+            cliente_id: form.querySelector('[name="cliente_id"]').value,
+            afiliado_cpf: document.getElementById('afiliado_cpf').value,
+            produto_id: form.querySelector('[name="produto_id"]').value,
+            tipo_venda: form.querySelector('[name="tipo_venda"]').value,
+            descricao_venda: form.querySelector('[name="descricao_venda"]').value,
+            valor: form.querySelector('[name="valor"]').value,
+            data_hora_ida: form.querySelector('[name="data_hora_ida"]').value,
+            data_hora_volta: form.querySelector('[name="data_hora_volta"]').value,
+            localizador_reserva: form.querySelector('[name="localizador_reserva"]').value.trim(),
+            data_venda: document.getElementById('data_venda').value,
+        };
+
+        fetch("{% url 'nova_venda' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.success) {
+                const toast = document.getElementById('regSuccessMessage');
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    form.reset();
+                    window.location.reload();
+                    document.getElementById('clienteInfoPanel').classList.remove('show');
+                }, 7000);
+            } else {
+                alert('Erro: ' + res.message);
+            }
+        })
+        .catch(err => alert('Erro inesperado: ' + err));
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('confirmRegModal');
+        if (event.target == modal) { closeRegModal(); }
+    }
+</script>
+</div>

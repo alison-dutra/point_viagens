@@ -1,0 +1,10 @@
+venv/
+**/venv/
+.env
+*.ppk
+meu_projeto_django/db.sqlite3
+meu_projeto_django/documentos_afiliados/
+__pycache__/
+*.py[cod]
+**/*.sqlite3
+*.ppk

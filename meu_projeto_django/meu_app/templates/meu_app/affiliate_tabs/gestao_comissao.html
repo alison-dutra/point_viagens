@@ -1,0 +1,430 @@
+{% load static %}
+<div class="tab-section gestao-comissao">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+    .gc-wrap {
+        background: #f4f6f9;
+        padding: 30px;
+        border-radius: 12px;
+        width: 100%;
+        font-family: 'IBM Plex Sans', sans-serif;
+    }
+
+    .gc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .gc-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0a2342;
+        margin: 0;
+    }
+
+    .gc-summary-cards {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 28px;
+    }
+
+    .gc-summary-card {
+        background: white;
+        border-radius: 10px;
+        padding: 16px 22px;
+        flex: 1;
+        min-width: 180px;
+        border-left: 5px solid #0a2342;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .gc-summary-card.green  { border-left-color: #1a7f37; }
+    .gc-summary-card.amber  { border-left-color: #9a6700; }
+    .gc-summary-card.blue   { border-left-color: #0a2342; }
+
+    .gc-summary-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        color: #888;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .gc-summary-value {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 22px;
+        font-weight: 700;
+        color: #0a2342;
+    }
+
+    .gc-summary-card.green  .gc-summary-value { color: #1a7f37; }
+    .gc-summary-card.amber  .gc-summary-value { color: #9a6700; }
+
+    .gc-table-wrapper {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    .gc-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .gc-table thead {
+        background: #0a2342;
+        color: white;
+    }
+
+    .gc-table thead th {
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    .gc-table tbody tr {
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.15s;
+    }
+
+    .gc-table tbody tr:hover { background: #fafbfc; }
+    .gc-table tbody tr:last-child { border-bottom: none; }
+
+    .gc-table td {
+        padding: 14px 16px;
+        color: #333;
+        vertical-align: middle;
+    }
+
+    .td-id {
+        font-family: 'IBM Plex Mono', monospace;
+        font-weight: 600;
+        color: #0a2342;
+        font-size: 13px;
+    }
+
+    .td-name { font-weight: 500; }
+    .td-pago { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #555; }
+
+    .td-receber {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .receber-positive { color: #1a7f37; }
+    .receber-zero     { color: #9a6700; }
+
+    .pago-input-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .pago-prefix {
+        font-size: 12px;
+        color: #888;
+        font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .pago-input {
+        width: 110px;
+        padding: 6px 8px;
+        border: 1.5px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: 'IBM Plex Mono', monospace;
+        color: #333;
+        transition: border-color 0.2s;
+        background: #fafafa;
+    }
+
+    .pago-input:focus { outline: none; border-color: #0a2342; background: #fff; }
+
+    .pago-date {
+        padding: 6px 8px;
+        border: 1.5px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #333;
+        background: #fafafa;
+        transition: border-color 0.2s;
+    }
+
+    .pago-date:focus { outline: none; border-color: #0a2342; background: #fff; }
+
+    .pago-desc {
+        width: 160px;
+        padding: 6px 8px;
+        border: 1.5px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #333;
+        background: #fafafa;
+        transition: border-color 0.2s;
+    }
+
+    .pago-desc:focus { outline: none; border-color: #0a2342; background: #fff; }
+
+    .btn-pagar {
+        padding: 6px 12px;
+        background: #0a2342;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .btn-pagar:hover {
+        background: #0d2e58;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(10,35,66,0.25);
+    }
+
+    .badge-pago {
+        display: inline-block;
+        padding: 3px 8px;
+        background: #dafbe1;
+        color: #1a7f37;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 10px;
+        margin-left: 8px;
+    }
+
+    .badge-parcial {
+        display: inline-block;
+        padding: 3px 8px;
+        background: #fff8c5;
+        color: #9a6700;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 10px;
+        margin-left: 8px;
+    }
+
+    .gc-toast {
+        position: fixed;
+        bottom: 30px;
+        right: 24px;
+        background: #0a2342;
+        color: white;
+        padding: 13px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transform: translateY(80px);
+        opacity: 0;
+        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 3000;
+    }
+
+    .gc-toast.show { transform: translateY(0); opacity: 1; }
+    .gc-toast.success { background: #1a7f37; }
+    .gc-toast.warning { background: #9a6700; }
+    .gc-toast.danger  { background: #cf222e; }
+
+    @media (max-width: 700px) {
+        .gc-wrap { padding: 15px; }
+        .pago-input { width: 90px; }
+        .pago-desc { width: 100px; }
+        .gc-summary-cards { flex-direction: column; }
+    }
+</style>
+
+<div class="gc-wrap">
+    <div class="gc-header">
+        <h1>💰 Gestão de Comissões</h1>
+    </div>
+
+    <div class="gc-summary-cards">
+        <div class="gc-summary-card blue">
+            <div class="gc-summary-label">Total Bruto em Vendas (Aprovadas)</div>
+            <div class="gc-summary-value" id="gc-total-bruto">R$ 0,00</div>
+        </div>
+        <div class="gc-summary-card green">
+            <div class="gc-summary-label">Total em Comissões</div>
+            <div class="gc-summary-value" id="gc-total-comissao">R$ 0,00</div>
+        </div>
+        <div class="gc-summary-card amber">
+            <div class="gc-summary-label">Total Pago</div>
+            <div class="gc-summary-value" id="gc-total-pago">R$ 0,00</div>
+        </div>
+        <div class="gc-summary-card green">
+            <div class="gc-summary-label">Total de Comissão Pendente</div>
+            <div class="gc-summary-value" id="gc-total-receber">R$ 0,00</div>
+        </div>
+    </div>
+
+    <div class="gc-table-wrapper">
+        <table class="gc-table" id="gc-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome Completo</th>
+                    <th>Total Bruto em Vendas</th>
+                    <th>Comissão</th>
+                    <th>Registrar Pagamento</th>
+                    <th>Total Pago</th>
+                    <th>Valor à Receber</th>
+                </tr>
+            </thead>
+            <tbody id="gc-tbody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="gc-toast" id="gc-toast"></div>
+
+<script>
+(function() {
+    const fmt = v => parseFloat(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    let dadosAfiliados = [];
+
+    function showToast(msg, type = '') {
+        const t = document.getElementById('gc-toast');
+        t.textContent = msg;
+        t.className = 'gc-toast ' + type + ' show';
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    function renderTable(dados) {
+        const tbody = document.getElementById('gc-tbody');
+        tbody.innerHTML = '';
+
+        dados.forEach(a => {
+            const comissao = a.total_comissao;
+            const pago     = a.total_pago;
+            const receber  = a.total_receber;
+            const totalPago = pago >= comissao && comissao > 0;
+            const parcial   = pago > 0 && pago < comissao;
+
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-id', a.id);
+
+            tr.innerHTML = `
+                <td class="td-id">#${a.id}</td>
+                <td class="td-name">${a.nome}</td>
+                <td class="td-pago" style="font-weight:600;color:#0a2342;">${fmt(a.total_vendas)}</td>
+                <td class="td-pago" style="font-weight:700;color:#0a2342;">${fmt(comissao)}</td>
+                <td>
+                    <div class="pago-input-wrap">
+                        <span class="pago-prefix">R$</span>
+                        <input type="number" class="pago-input" min="0" step="0.01"
+                            placeholder="0,00" data-id="${a.id}" data-max="${comissao}">
+                        <input type="date" class="pago-date" data-id="${a.id}">
+                        <input type="text" class="pago-desc" placeholder="Descrição..." data-id="${a.id}">
+                        <button class="btn-pagar" data-id="${a.id}">💳 Registrar</button>
+                    </div>
+                    ${totalPago ? '<span class="badge-pago">✅ PAGO</span>' : ''}
+                    ${parcial   ? '<span class="badge-parcial">⏳ PARCIAL</span>' : ''}
+                </td>
+                <td class="td-pago" style="font-weight:700;color:#9a6700;">${fmt(pago)}</td>
+                <td class="td-receber ${receber > 0 ? 'receber-positive' : 'receber-zero'}">${fmt(receber)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        tbody.querySelectorAll('.btn-pagar').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.disabled) return;
+                const id       = this.getAttribute('data-id');
+                const input    = tbody.querySelector(`.pago-input[data-id="${id}"]`);
+                const dateInput= tbody.querySelector(`.pago-date[data-id="${id}"]`);
+                const descInput= tbody.querySelector(`.pago-desc[data-id="${id}"]`);
+                const val      = parseFloat(input.value) || 0;
+                const data_pag = dateInput.value;
+                const descricao= descInput.value.trim();
+
+                if (val <= 0) { showToast('⚠️ Informe um valor válido.', 'warning'); return; }
+                if (!data_pag) { showToast('⚠️ Informe a data do pagamento.', 'warning'); return; }
+
+                this.disabled = true;
+
+                fetch('/registrar_pagamento/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        afiliado_id: id,
+                        valor: val,
+                        data_pagamento: data_pag,
+                        descricao: descricao
+                    })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        showToast(`✅ Pagamento de ${fmt(val)} registrado!`, 'success');
+                        carregarDados();
+                    } else {
+                        showToast('❌ Erro: ' + res.message, 'danger');
+                        this.disabled = false;
+                    }
+                })
+                .catch(() => {
+                    showToast('❌ Erro ao registrar pagamento.', 'danger');
+                    this.disabled = false;
+                });
+            });
+        });
+
+        tbody.querySelectorAll('.pago-input').forEach(inp => {
+            inp.addEventListener('blur', function() {
+                if (this.value) this.value = parseFloat(this.value).toFixed(2);
+            });
+        });
+    }
+
+    function renderSummary(dados) {
+        const totalBruto    = dados.reduce((s, a) => s + a.total_vendas, 0);
+        const totalComissao = dados.reduce((s, a) => s + a.total_comissao, 0);
+        const totalPago     = dados.reduce((s, a) => s + a.total_pago, 0);
+        const totalReceber  = dados.reduce((s, a) => s + a.total_receber, 0);
+
+        document.getElementById('gc-total-bruto').textContent    = fmt(totalBruto);
+        document.getElementById('gc-total-comissao').textContent = fmt(totalComissao);
+        document.getElementById('gc-total-pago').textContent     = fmt(totalPago);
+        document.getElementById('gc-total-receber').textContent  = fmt(totalReceber);
+    }
+
+    function carregarDados() {
+        fetch('/gestao_comissao/')
+        .then(res => res.json())
+        .then(res => {
+            dadosAfiliados = res.dados;
+            renderTable(dadosAfiliados);
+            renderSummary(dadosAfiliados);
+        })
+        .catch(() => showToast('❌ Erro ao carregar dados.', 'danger'));
+    }
+
+    carregarDados();
+})();
+</script>
+
+</div>

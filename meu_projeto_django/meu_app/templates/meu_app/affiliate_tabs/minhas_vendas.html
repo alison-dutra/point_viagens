@@ -1,0 +1,533 @@
+{% load static %}
+<div class="tab-section minhas-vendas">
+<style>
+    .container-vendas {
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        width: 100%;
+    }
+
+    .container-vendas h1 {
+        color: #333;
+        margin-bottom: 30px;
+        text-align: center;
+        font-size: 28px;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn-filter {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        background-color: #fff;
+        border-radius: 20px;
+        color: #555;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .btn-filter:hover, .btn-filter.active {
+        background-color: #0a2342;
+        color: white;
+        border-color: #0a2342;
+    }
+
+    .sale-card {
+        background: white;
+        border: 1px solid #e1e4e8;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+    }
+
+    .sale-card:not([data-status="pendente"]) .card-alter {
+        display: none;
+    }
+
+    .sale-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-color: #667eea;
+    }
+
+    .card-header {
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #fafbfc;
+    }
+
+    .sale-code { font-weight: 700; color: #333; font-size: 15px; }
+    .sale-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #666; }
+
+    .card-body {
+        padding: 15px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+    }
+
+    .info-item { display: flex; flex-direction: column; }
+    .label { font-size: 10px; text-transform: uppercase; color: #888; margin-bottom: 4px; font-weight: 600; }
+    .value { font-size: 13px; color: #444; font-weight: 500; }
+
+    .card-footer {
+        padding: 15px;
+        background-color: #fff;
+        border-top: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .sale-desc { font-size: 15px; color: #333; font-weight: 500; }
+    .sale-price { font-size: 18px; font-weight: 800; }
+
+    .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .badge-approved { background-color: #dafbe1; color: #1a7f37; }
+    .badge-pending  { background-color: #fff8c5; color: #9a6700; }
+    .badge-rejected { background-color: #ffebe9; color: #cf222e; }
+
+    .card-commission {
+        padding: 8px 15px;
+        background-color: #f0faf4;
+        border-top: 1px solid #e1f0e8;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .commission-label { font-size: 13px; color: #555; font-weight: 500; }
+    .commission-value { font-size: 14px; font-weight: 700; color: #1a7f37; }
+
+    .card-alter {
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-top: 2px solid #e1e4e8;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .alter-label { font-size: 14px; font-weight: 600; color: #333; }
+
+    .btn-edit {
+        padding: 8px 16px;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-edit:hover {
+        background-color: #565e64;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(108,117,125,0.3);
+    }
+
+    .sale-status-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+    .btn-approve, .btn-reject { padding: 8px 14px; border: 0; border-radius: 6px; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-approve { background: #2ea44f; }
+    .btn-approve:hover { background: #238a3e; }
+    .btn-reject { background: #cf222e; }
+    .btn-reject:hover { background: #a8191f; }
+
+    .edit-modal-overlay {
+        display: none; position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 2000; justify-content: center; align-items: center;
+    }
+
+    .edit-modal-overlay.show { display: flex; }
+
+    .edit-modal-content {
+        background: white; padding: 30px; border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        max-width: 500px; width: 95%;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-50px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .edit-modal-title {
+        font-size: 18px; font-weight: 700; color: #333;
+        margin-bottom: 20px; padding-bottom: 12px;
+        border-bottom: 2px solid #e1e4e8;
+    }
+
+    .edit-field { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+
+    .edit-field label {
+        font-size: 12px; font-weight: 600; color: #888;
+        text-transform: uppercase; min-width: 110px; width: 110px;
+    }
+
+    .edit-field input, .edit-field select {
+        flex: 1; padding: 7px 10px; border: 1px solid #ddd;
+        border-radius: 6px; font-size: 13px; color: #333;
+        transition: border-color 0.2s;
+    }
+
+    .edit-field input:focus, .edit-field select:focus { outline: none; border-color: #0a2342; }
+
+    .edit-modal-buttons {
+        display: flex; gap: 10px; justify-content: flex-end;
+        margin-top: 20px; padding-top: 15px; border-top: 1px solid #e1e4e8;
+    }
+
+    .btn-edit-save {
+        padding: 10px 24px; background-color: #0a2342; color: white;
+        border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-edit-save:hover { background-color: #081a30; transform: translateY(-1px); }
+
+    .btn-edit-cancel {
+        padding: 10px 24px; background-color: #e1e4e8; color: #333;
+        border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+
+    .btn-edit-cancel:hover { background-color: #d1d4d8; }
+
+    .success-message {
+        position: fixed; top: 80px; right: 20px;
+        background-color: #2ea44f; color: white;
+        padding: 12px 20px; border-radius: 6px; font-size: 14px; font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        opacity: 0; transform: translateY(-20px);
+        transition: all 0.3s ease; z-index: 1000;
+    }
+
+    .success-message.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 600px) {
+        .container-vendas { padding: 15px; }
+        .card-header, .card-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
+        .sale-meta { width: 100%; justify-content: space-between; }
+        .card-footer { align-items: stretch; }
+        .sale-price { text-align: right; }
+    }
+</style>
+
+<!-- Modal de Edição com os atributos mapeados para o banco -->
+<div class="edit-modal-overlay" id="editModal">
+    <div class="edit-modal-content">
+        <div class="edit-modal-title">✏️ Alterar Venda — <span id="editModalCode"></span></div>
+        
+        <div class="edit-field">
+            <label>Código Venda</label>
+            <input type="text" id="edit-codigo-venda">
+        </div>
+        <div class="edit-field">
+            <label>CPF Cliente</label>
+            <input type="text" id="edit-cliente-cpf">
+        </div>
+        <div class="edit-field">
+            <label>CPF Afiliado</label>
+            <input type="text" id="edit-afiliado-cpf">
+        </div>
+        <div class="edit-field">
+            <label>Produto</label>
+            <select id="edit-id-produto">
+                {% for produto in produtos %}
+                <option value="{{ produto.id }}">{{ produto.nome_produto }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="edit-field">
+            <label>Tipo de Venda</label>
+            <select id="edit-tipo-venda">
+                <option value="PIX">PIX</option>
+                <option value="Cartão de Debito">Cartão de Debito</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+            </select>
+        </div>
+        <div class="edit-field">
+            <label>Descrição</label>
+            <input type="text" id="edit-descricao">
+        </div>
+        <div class="edit-field">
+            <label>Valor (R$)</label>
+            <input type="text" id="edit-valor">
+        </div>
+        <div class="edit-field">
+            <label>Data</label>
+            <input type="datetime-local" id="edit-data">
+        </div>
+
+        <div class="edit-modal-buttons">
+            <button class="btn-edit-cancel" onclick="closeEditModal()">Cancelar</button>
+            <button class="btn-edit-save" onclick="saveEdit()">💾 Salvar alterações</button>
+        </div>
+    </div>
+</div>
+
+<div class="success-message" id="editSuccessMessage">
+    <span>✏️</span> Venda alterada com sucesso!
+</div>
+
+<div class="container-vendas">
+    <h1>Minhas Vendas</h1>
+
+    <div class="filter-group">
+        <a href="#" class="btn-filter active" data-status="todas">Todas</a>
+        <a href="#" class="btn-filter" data-status="aprovado">Aprovadas</a>
+        <a href="#" class="btn-filter" data-status="pendente">Pendentes</a>
+        <a href="#" class="btn-filter" data-status="reprovado">Reprovadas</a>
+    </div>
+
+    {% for venda in minhas_vendas %}
+    <div class="sale-card" 
+         data-status="{{ venda.status_venda }}" 
+         data-comissao-valor="{{ venda.comissao_valor }}"
+         data-comissao-percentual="{{ venda.comissao_percentual }}"
+         data-id="{{ venda.id }}"
+         data-cliente-cpf="{{ venda.cliente.cpf }}"
+         data-afiliado-cpf="{{ venda.afiliado.cpf }}"
+         data-produto-id="{{ venda.produto.id }}"
+         data-tipo-venda="{{ venda.tipo_venda }}"
+         data-data-raw="{{ venda.data_venda|date:'Y-m-d\TH:i' }}">
+        <div class="card-header">
+            <span class="sale-code">#{{ venda.codigo_venda }}</span>
+            <div class="sale-meta">
+                <span>{{ venda.data_venda|date:"d/m/Y H:i" }}</span>
+                <span class="badge
+                    {% if venda.status_venda == 'aprovado' %}badge-approved
+                    {% elif venda.status_venda == 'pendente' %}badge-pending
+                    {% else %}badge-rejected{% endif %}">
+                    {{ venda.status_venda|upper }}
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="info-item"><span class="label">Cliente</span><span class="value">{{ venda.cliente.nome }}</span></div>
+            <div class="info-item"><span class="label">CPF Afiliado</span><span class="value">{{ venda.afiliado.cpf }}</span></div>
+            <div class="info-item"><span class="label">Produto</span><span class="value">{{ venda.produto.nome_produto }}</span></div>
+            <div class="info-item"><span class="label">Tipo de Venda</span><span class="value">{{ venda.tipo_venda }}</span></div>
+            {% if venda.produto.is_passagem_aerea %}
+            <div class="info-item"><span class="label">Data da Ida</span><span class="value">{{ venda.data_hora_ida|date:"d/m/Y H:i"|default:"—" }}</span></div>
+            <div class="info-item"><span class="label">Data da Volta</span><span class="value">{{ venda.data_hora_volta|date:"d/m/Y H:i"|default:"—" }}</span></div>
+            <div class="info-item"><span class="label">Localizador da Reserva</span><span class="value">{{ venda.localizador_reserva|default:"—" }}</span></div>
+            {% endif %}
+        </div>
+        <div class="card-footer">
+            <div class="sale-desc">{{ venda.descricao_venda }}</div>
+            <div class="sale-price" style="color:
+                {% if venda.status_venda == 'aprovado' %}#2ea44f
+                {% elif venda.status_venda == 'pendente' %}#9a6700
+                {% else %}#cf222e{% endif %};">
+                R$ {{ venda.valor|floatformat:2 }}
+            </div>
+        </div>
+        <div class="card-commission">
+            <span class="commission-label">Comissão:</span>
+            <span class="commission-value"></span>
+        </div>
+        {% comment %}
+        <div class="card-alter">
+            {% if user.is_superuser %}
+            <span class="alter-label">Aprova&ccedil;&atilde;o Admin:</span>
+            <div class="sale-status-actions">
+                <button class="btn-edit" onclick="openEditModal(this)">✏️ Alterar venda</button>
+                <button type="button" class="btn-reject" onclick="alterarStatusVenda(this, 'reprovado')">&#10060; Reprovar venda</button>
+                <button type="button" class="btn-approve" onclick="alterarStatusVenda(this, 'aprovado')">&#9989; Aprovar venda</button>
+            </div>
+            {% else %}
+            <span class="alter-label">Alterar:</span>
+            <button class="btn-edit" onclick="openEditModal(this)">✏️ Alterar venda</button>
+            {% endif %}
+        </div>
+        {% endcomment %}
+    </div>
+    {% empty %}
+    <p style="text-align:center; color:#888; margin-top: 40px;">Nenhuma venda encontrada.</p>
+    {% endfor %}
+
+</div>
+
+<script>
+    // Cálculo automático de comissão (1.5%) para vendas aprovadas
+    document.querySelectorAll('.sale-card').forEach(card => {
+        const priceEl = card.querySelector('.sale-price');
+        const commissionEl = card.querySelector('.commission-value');
+        const commissionRow = card.querySelector('.card-commission');
+        if (!priceEl || !commissionEl) return;
+        if (card.getAttribute('data-status') !== 'aprovado') { commissionRow.style.display = 'none'; return; }
+        const raw = priceEl.textContent.replace('R$','').trim().replace(/\./g,'').replace(',','.');
+        const percent = parseFloat(card.dataset.comissaoPercentual || '0');
+        const commission = parseFloat(raw) * percent / 100;
+        commissionEl.textContent = commission.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    });
+
+    // Filtros de status
+    document.querySelectorAll('.btn-filter').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            const filtro = this.getAttribute('data-status').toLowerCase();
+            document.querySelectorAll('.sale-card').forEach(card => {
+                card.style.display = (filtro === 'todas' || card.getAttribute('data-status') === filtro) ? 'block' : 'none';
+            });
+        });
+    });
+
+    window.alterarStatusVenda = function(button, novoStatus) {
+        const card = button.closest('.sale-card');
+        const acao = novoStatus === 'aprovado' ? 'aprovar' : 'reprovar';
+        if (!confirm(`Deseja ${acao} esta venda?`)) return;
+        const botoes = card.querySelectorAll('.sale-status-actions button');
+        botoes.forEach(item => item.disabled = true);
+        fetch(`/alterar_venda/${card.dataset.id}/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status_venda: novoStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) throw new Error(data.message || 'Nao foi possivel atualizar o status.');
+            card.dataset.status = novoStatus;
+            const badge = card.querySelector('.badge');
+            badge.classList.remove('badge-approved', 'badge-pending', 'badge-rejected');
+            badge.classList.add(novoStatus === 'aprovado' ? 'badge-approved' : 'badge-rejected');
+            badge.textContent = novoStatus.toUpperCase();
+            const price = card.querySelector('.sale-price');
+            price.style.color = novoStatus === 'aprovado' ? '#2ea44f' : '#cf222e';
+            const commissionRow = card.querySelector('.card-commission');
+            if (novoStatus === 'aprovado') {
+                const raw = price.textContent.replace('R$', '').trim().replace(/\./g, '').replace(',', '.');
+                const percent = parseFloat(card.dataset.comissaoPercentual || '0');
+                commissionRow.querySelector('.commission-value').textContent = (parseFloat(raw) * percent / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                commissionRow.style.display = 'flex';
+            } else {
+                commissionRow.style.display = 'none';
+            }
+            card.querySelector('.card-alter').style.display = 'none';
+        })
+        .catch(error => {
+            botoes.forEach(item => item.disabled = false);
+            alert(error.message || 'Erro ao atualizar status da venda.');
+        });
+    };
+
+    let editCard = null;
+
+    function openEditModal(button) {
+        editCard = button.closest('.sale-card');
+        
+        // Pega os dados direto dos atributos data-* injetados pelo Django no card
+        const codigoVenda = editCard.querySelector('.sale-code').textContent.replace('#', '').trim();
+        const clienteCpf = editCard.getAttribute('data-cliente-cpf');
+        const afiliadoCpf = editCard.getAttribute('data-afiliado-cpf');
+        const produtoId = editCard.getAttribute('data-produto-id');
+        const tipoVenda = editCard.getAttribute('data-tipo-venda');
+        const descricao = editCard.querySelector('.sale-desc').textContent;
+        const valorBruto = editCard.querySelector('.sale-price').textContent.replace('R$','').trim().replace(/\./g,'').replace(',','.');
+        const dataRaw = editCard.getAttribute('data-data-raw');
+
+        // Preenche os campos do modal
+        document.getElementById('editModalCode').textContent = '#' + codigoVenda;
+        document.getElementById('edit-codigo-venda').value = codigoVenda;
+        document.getElementById('edit-cliente-cpf').value = clienteCpf;
+        document.getElementById('edit-afiliado-cpf').value = afiliadoCpf;
+        document.getElementById('edit-id-produto').value = produtoId;
+        document.getElementById('edit-tipo-venda').value = tipoVenda;
+        document.getElementById('edit-descricao').value = descricao;
+        document.getElementById('edit-valor').value = valorBruto;
+        document.getElementById('edit-data').value = dataRaw;
+
+        document.getElementById('editModal').classList.add('show');
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').classList.remove('show');
+        editCard = null;
+    }
+
+    function saveEdit() {
+        if (!editCard) return;
+        const vendaId = editCard.getAttribute('data-id');
+
+        const payload = {
+            codigo_venda: document.getElementById('edit-codigo-venda').value,
+            cliente_id: document.getElementById('edit-cliente-cpf').value, // cpf ou id do cliente tratado no back
+            afiliado_cpf: document.getElementById('edit-afiliado-cpf').value,
+            produto_id: document.getElementById('edit-id-produto').value,
+            tipo_venda: document.getElementById('edit-tipo-venda').value,
+            descricao_venda: document.getElementById('edit-descricao').value,
+            valor: document.getElementById('edit-valor').value,
+            data_venda: document.getElementById('edit-data').value
+        };
+
+        fetch(`/alterar_venda/${vendaId}/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Atualiza o card visualmente após salvar com sucesso
+                editCard.querySelector('.sale-code').textContent = '#' + payload.codigo_venda;
+                editCard.setAttribute('data-cliente-cpf', payload.cliente_id);
+                editCard.setAttribute('data-afiliado-cpf', payload.afiliado_cpf);
+                editCard.setAttribute('data-produto-id', payload.produto_id);
+                editCard.setAttribute('data-tipo-venda', payload.tipo_venda);
+                
+                const selectProd = document.getElementById('edit-id-produto');
+                const nomeProdutoText = selectProd.options[selectProd.selectedIndex].text;
+
+                const values = editCard.querySelectorAll('.info-item .value');
+                if (values[0]) values[0].textContent = payload.cliente_id; // ou nome, se preferir
+                if (values[1]) values[1].textContent = payload.afiliado_cpf;
+                if (values[2]) values[2].textContent = nomeProdutoText;
+                if (values[3]) values[3].textContent = payload.tipo_venda;
+
+                editCard.querySelector('.sale-desc').textContent = payload.descricao_venda;
+                editCard.querySelector('.sale-price').textContent = 'R$ ' + parseFloat(payload.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                
+                closeEditModal();
+                const successMsg = document.getElementById('editSuccessMessage');
+                successMsg.classList.add('show');
+                setTimeout(() => successMsg.classList.remove('show'), 3000);
+            } else {
+                alert('Erro ao salvar: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao salvar alterações.');
+        });
+    }
+</script>
+</div>

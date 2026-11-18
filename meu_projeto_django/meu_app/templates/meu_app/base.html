@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE HTML>
+<!--
+	Aerial by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		{% block title %}
+		<title>Point Viagens!</title>
+		{% endblock %}
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="{% static 'meu_app/css/main.css' %}" />
+		<link rel="stylesheet" href="{% static 'meu_app/css/fontawesome-all.min.css' %}" />
+		<noscript><link rel="stylesheet" href="{% static 'meu_app/css/noscript.css' %}" /></noscript>
+		{% block extra_head %}{% endblock %}
+	</head>
+	<body class="{% block body_class %}is-preload{% endblock %}">
+		<nav id="top-bar">
+			<div class="top-bar-content">
+				<img class="top-bar-logo" src="{% static 'meu_app/css/images/logo-branco2.png' %}" alt="Mini logo Point Viagens">
+				{% block top_bar %}
+				<a href="/area-do-afiliado/" class="top-bar-label">&Aacute;REA DO AFILIADO</a>
+				{% endblock %}
+			</div>
+		</nav>
+		{% block wrapper %}
+		<div id="wrapper">
+			<div id="bg"></div>
+			<div id="overlay"></div>
+			<div id="main">
+				<header id="header">
+					{% block intro %}
+					<div class="title-logo">
+						<img src="{% static 'meu_app/css/images/logo-branco2.png' %}" alt="Point Viagens">
+					</div>
+					{% endblock %}
+					<nav>
+						<ul>
+							{% block nav %}
+							<li><a href="https://www.comprarviagem.com.br/pointviagens" class="fas fa-plane"><span class="label">Voos</span></a></li>
+							<li><a href="https://www.comprarviagem.com.br/pointviagens" class="fas fa-bed"><span class="label">Hot&eacute;is</span></a></li>
+							<li><a href="https://www.comprarviagem.com.br/pointviagens" class="fas fa-plane-departure"><span class="label">Voo + Hotel</span></a></li>
+							<li><a href="https://www.comprarviagem.com.br/pointviagens" class="fas fa-car"><span class="label">Carros</span></a></li>
+							<li><a href="https://www.comprarviagem.com.br/pointviagens" class="fas fa-suitcase-rolling"><span class="label">Pacotes</span></a></li>
+							<li><a href="https://www.comprarviagem.com.br/pointviagens" class="fas fa-shield-alt"><span class="label">Seguros</span></a></li>
+							{% endblock %}
+						</ul>
+					</nav>
+				</header>
+				{% block portal_area %}
+				{% block headline %}{% endblock %}
+				{% block content %}{% endblock %}
+				{% endblock %}
+				<footer id="footer">
+					<span class="copyright">&copy; PointViagens: Sua Viagem <a href="https://www.comprarviagem.com.br/pointviagens">come&ccedil;a aqui!</a>.</span>
+				</footer>
+			</div>
+		</div>
+		{% endblock %}
+		<script>
+			window.onload = function() { document.body.classList.remove('is-preload'); }
+			window.ontouchmove = function() { return false; }
+			window.onorientationchange = function() { document.body.scrollTop = 0; }
+		</script>
+		{% block extra_scripts %}{% endblock %}
+	</body>
+</html>
