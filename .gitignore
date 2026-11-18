@@ -8,3 +8,6 @@ __pycache__/
 *.py[cod]
 **/*.sqlite3
 *.ppk
+**/__pycache__/
+DB/
+**/documentos_afiliados/
